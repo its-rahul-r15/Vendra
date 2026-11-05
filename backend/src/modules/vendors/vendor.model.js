@@ -73,6 +73,24 @@ const vendorSchema = new mongoose.Schema(
       kybDocs: [{ title: String, url: String }],
       reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       reviewedAt: { type: Date },
+      adminNote: { type: String, trim: true },
+    },
+
+    sellerApplication: {
+      businessName: { type: String, trim: true },
+      businessType: { type: String, enum: ['restaurant', 'grocery', 'both'] },
+      ownerName: { type: String, trim: true },
+      businessPhone: { type: String, trim: true },
+      businessEmail: { type: String, trim: true, lowercase: true },
+      gstNumber: { type: String, trim: true },
+      fssaiNumber: { type: String, trim: true },
+      businessAddress: {
+        line1: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        pincode: { type: String, trim: true },
+      },
+      submittedAt: { type: Date },
     },
 
     commission: {
@@ -105,6 +123,7 @@ vendorSchema.index({ location: '2dsphere' });
 vendorSchema.index({ vertical: 1, isActive: 1, isOpen: 1 });
 vendorSchema.index({ ownerId: 1 });
 vendorSchema.index({ 'staff.userId': 1 });
+vendorSchema.index({ 'approval.status': 1 });
 
 const Vendor = mongoose.model('Vendor', vendorSchema);
 module.exports = Vendor;

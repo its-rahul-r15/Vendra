@@ -73,6 +73,12 @@ router.get('/categories', async (_req, res) => {
   res.json({ success: true, data: { categories } });
 });
 
+router.get('/categories/tree', async (req, res) => {
+  const { catalogService } = require('../modules/catalog');
+  const categories = await catalogService.getCategoriesTree({ vertical: req.query.vertical });
+  res.json({ success: true, data: { categories } });
+});
+
 router.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

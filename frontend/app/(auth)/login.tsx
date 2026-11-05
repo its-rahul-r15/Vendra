@@ -132,8 +132,13 @@ export default function LoginScreen() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
   const [isPhoneFocused, setIsPhoneFocused] = useState(false);
+  const [isOtpFocused, setIsOtpFocused] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [resendTimer, setResendTimer] = useState(30);
 
+  const otpInputRef = useRef<any>(null);
   const setUser = useAuthStore((s) => s.setUser);
 
   const scale = useSharedValue(1);
@@ -157,31 +162,73 @@ export default function LoginScreen() {
     router.replace('/(tabs)');
   };
 
+  // Resend countdown timer effect
+  useEffect(() => {
+    let interval: any = null;
+    if (isOtpSent && resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isOtpSent, resendTimer]);
+
   const handleSendOtp = async () => {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     if (!cleanPhone || cleanPhone.length < 10)
       return Alert.alert('Invalid Number', 'Please enter a valid 10-digit phone number');
+
+    const full = cleanPhone.startsWith('+') ? cleanPhone : `+91${cleanPhone}`;
+
+    // ⚡ Instant transition to OTP verification screen with NO blocking loading spinner!
+    setIsOtpSent(true);
+    setOtp('');
+    setIsSendingOtp(true);
+    setResendTimer(30);
+
+    setTimeout(() => {
+      otpInputRef.current?.focus();
+    }, 200);
+
     try {
-      setLoading(true);
-      const full = cleanPhone.startsWith('+') ? cleanPhone : `+91${cleanPhone}`;
       const res = await authService.sendOtp({ phone: full });
       setIsNewUser(!!res.isNewUser);
-      setIsOtpSent(true);
       if (res.otp) {
         setOtp(String(res.otp));
-        Alert.alert('🔐 Dev OTP', `Your test OTP is: ${res.otp}`, [{ text: 'Got it!' }]);
       }
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.message ?? 'Failed to send OTP.');
-    } finally { setLoading(false); }
+      Alert.alert('Notice', e.response?.data?.message ?? 'Failed to send OTP via WhatsApp. You can tap Resend.');
+    } finally {
+      setIsSendingOtp(false);
+    }
   };
 
-  const handleVerifyOtp = async () => {
-    const cleanOtp = otp.trim();
-    if (!cleanOtp || cleanOtp.length < 4)
-      return Alert.alert('Invalid OTP', 'Please enter the OTP code');
+  const handleResendOtp = async () => {
+    if (resendTimer > 0 || isSendingOtp) return;
+    setIsSendingOtp(true);
+    setResendTimer(30);
     try {
-      setLoading(true);
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      const full = cleanPhone.startsWith('+') ? cleanPhone : `+91${cleanPhone}`;
+      const res = await authService.sendOtp({ phone: full });
+      if (res.otp) {
+        setOtp(String(res.otp));
+      }
+    } catch (e: any) {
+      Alert.alert('Resend Failed', e.response?.data?.message ?? 'Failed to resend OTP.');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (inputOtp?: string) => {
+    const cleanOtp = (inputOtp || otp).trim();
+    if (!cleanOtp || cleanOtp.length < 4)
+      return Alert.alert('Invalid OTP', 'Please enter the 4-digit OTP code');
+    try {
+      setVerifyLoading(true);
       const cleanPhone = phone.replace(/[^0-9]/g, '');
       const full = cleanPhone.startsWith('+') ? cleanPhone : `+91${cleanPhone}`;
       const data = await authService.verifyOtp({ phone: full, otp: cleanOtp });
@@ -189,7 +236,18 @@ export default function LoginScreen() {
       data.isNewUser ? router.replace('/(auth)/onboarding') : goHome(data.user?.role);
     } catch (e: any) {
       Alert.alert('Verification Failed', e.response?.data?.message ?? 'Invalid or expired OTP');
-    } finally { setLoading(false); }
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const handleOtpChange = (val: string) => {
+    const clean = val.replace(/[^0-9]/g, '').slice(0, 4);
+    setOtp(clean);
+    if (clean.length === 4) {
+      Keyboard.dismiss();
+      handleVerifyOtp(clean);
+    }
   };
 
   const quickLogin = async (p: string) => {
@@ -207,8 +265,8 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      StatusBar.setTranslucent(true);
-      StatusBar.setBackgroundColor('transparent');
+      StatusBar.setTranslucent?.(true);
+      StatusBar.setBackgroundColor?.('transparent');
     }
 
     const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -338,40 +396,69 @@ export default function LoginScreen() {
                 <Text style={styles.title}>
                   {isNewUser ? 'Create Account' : 'Verify Phone Number'}
                 </Text>
-                <Text style={styles.subText}>Enter 6-digit code sent to +91 {phone}</Text>
+                <Text style={styles.subText}>
+                  {isSendingOtp
+                    ? `Sending 4-digit code to +91 ${phone}...`
+                    : `Enter 4-digit code sent to +91 ${phone}`}
+                </Text>
               </View>
 
-              {/* OTP Input */}
-              <View style={styles.otpInputBox}>
+              {/* 4 Box OTP Input Container */}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => otpInputRef.current?.focus()}
+                style={styles.otpBoxesRow}
+              >
+                {[0, 1, 2, 3].map((index) => {
+                  const digit = otp[index] || '';
+                  const isCurrent =
+                    isOtpFocused &&
+                    (otp.length === index || (index === 3 && otp.length === 4));
+                  return (
+                    <View
+                      key={index}
+                      style={[
+                        styles.otpBox,
+                        digit ? styles.otpBoxFilled : null,
+                        isCurrent ? styles.otpBoxFocused : null,
+                      ]}
+                    >
+                      <Text style={styles.otpDigitText}>{digit}</Text>
+                    </View>
+                  );
+                })}
+
+                {/* Hidden but interactive input overlay covering the 4 boxes */}
                 <TextInput
-                  style={styles.otpTextInput}
-                  placeholder="• • • •"
-                  placeholderTextColor="#CBD5E1"
-                  keyboardType="number-pad"
+                  ref={otpInputRef}
+                  style={styles.hiddenOtpInput}
                   value={otp}
-                  onChangeText={(val: string) => setOtp(val.replace(/[^0-9]/g, ''))}
-                  maxLength={6}
+                  onChangeText={handleOtpChange}
+                  keyboardType="number-pad"
+                  maxLength={4}
                   autoFocus
                   onFocus={() => {
+                    setIsOtpFocused(true);
                     keyboardOffset.value = withTiming(-80, { duration: 240 });
                   }}
                   onBlur={() => {
+                    setIsOtpFocused(false);
                     keyboardOffset.value = withTiming(0, { duration: 200 });
                   }}
                 />
-              </View>
+              </TouchableOpacity>
 
               {/* Verify Button — ALWAYS Vibrant Brand Orange */}
               <AnimatedView style={animStyle}>
                 <TouchableOpacity
                   style={styles.continueBtn}
-                  onPress={handleVerifyOtp}
+                  onPress={() => handleVerifyOtp()}
                   onPressIn={pressIn}
                   onPressOut={pressOut}
-                  disabled={loading}
+                  disabled={verifyLoading}
                   activeOpacity={0.88}
                 >
-                  {loading ? (
+                  {verifyLoading ? (
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <Text style={styles.continueBtnText}>
@@ -383,14 +470,35 @@ export default function LoginScreen() {
 
               {/* Resend / Change Number */}
               <View style={styles.otpLinksRow}>
-                <TouchableOpacity onPress={handleSendOtp} disabled={loading} style={styles.linkBtn}>
-                  <Ionicons name="refresh" size={13} color={BRAND_ORANGE} />
-                  <Text style={[styles.linkText, { color: BRAND_ORANGE }]}>Resend Code</Text>
+                <TouchableOpacity
+                  onPress={handleResendOtp}
+                  disabled={resendTimer > 0 || isSendingOtp}
+                  style={styles.linkBtn}
+                >
+                  <Ionicons
+                    name="refresh"
+                    size={13}
+                    color={resendTimer > 0 ? '#94A3B8' : BRAND_ORANGE}
+                  />
+                  <Text
+                    style={[
+                      styles.linkText,
+                      { color: resendTimer > 0 ? '#94A3B8' : BRAND_ORANGE },
+                    ]}
+                  >
+                    {resendTimer > 0
+                      ? `Resend in ${resendTimer}s`
+                      : isSendingOtp
+                      ? 'Sending...'
+                      : 'Resend Code'}
+                  </Text>
                 </TouchableOpacity>
                 <View style={styles.linkDot} />
                 <TouchableOpacity
-                  onPress={() => { setIsOtpSent(false); setOtp(''); }}
-                  disabled={loading}
+                  onPress={() => {
+                    setIsOtpSent(false);
+                    setOtp('');
+                  }}
                   style={styles.linkBtn}
                 >
                   <Ionicons name="pencil" size={13} color="#64748B" />
@@ -644,25 +752,60 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // ── OTP Screen Specific ───────────────────────────────────────────────────
-  otpInputBox: {
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: BRAND_ORANGE,
-    backgroundColor: '#FFFFFF',
+  // ── OTP Screen Specific (4 Boxes) ─────────────────────────────────────────
+  otpBoxesRow: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
-    marginBottom: 16,
+    gap: 14,
+    marginTop: 18,
+    marginBottom: 20,
+    position: 'relative',
   },
-  otpTextInput: {
-    fontSize: 24,
+  otpBox: {
+    width: 62,
+    height: 62,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  otpBoxFilled: {
+    borderColor: BRAND_ORANGE,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.8,
+  },
+  otpBoxFocused: {
+    borderColor: BRAND_ORANGE,
+    borderWidth: 2.2,
+    backgroundColor: '#FFFFFF',
+    shadowColor: BRAND_ORANGE,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  otpDigitText: {
+    fontSize: 26,
     fontWeight: '800',
-    letterSpacing: 18,
-    color: TEXT_DARK,
+    color: '#0F172A',
     textAlign: 'center',
-    width: '100%',
+  },
+  hiddenOtpInput: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.01,
+    color: 'transparent',
   },
   otpLinksRow: {
     flexDirection: 'row',

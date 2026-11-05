@@ -99,6 +99,163 @@ class VendorService {
       'Vendor resumed'
     );
   }
+
+  async applyAsSeller(userId, applicationData) {
+    const User = require('../users/user.model');
+
+    // Check user is not already a merchant
+    const user = await User.findById(userId);
+    if (!user) throw new Error('User not found');
+    if (['merchant_owner', 'restaurant_owner'].includes(user.role)) {
+      throw new Error('You are already registered as a seller');
+    }
+
+    // Check no pending application already exists
+    const existingApp = await Vendor.findOne({ ownerId: userId, 'approval.status': 'pending' });
+    if (existingApp) {
+      throw new Error('You already have a pending application');
+    }
+
+    const { businessName, businessType, ownerName, businessPhone, businessEmail,
+            gstNumber, fssaiNumber, businessAddress } = applicationData;
+
+    // Determine vertical from businessType
+    const verticalMap = { restaurant: 'food', grocery: 'grocery', both: 'food' };
+    const vertical = verticalMap[businessType] || 'food';
+    const type = businessType === 'grocery' ? 'grocery' : 'restaurant';
+
+    // Create a slug
+    const slug = (businessName || 'seller')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      + '-' + Date.now();
+
+    const vendor = new Vendor({
+      name: businessName,
+      slug,
+      type,
+      vertical,
+      ownerId: userId,
+      location: { type: 'Point', coordinates: [0, 0] }, // placeholder until approved
+      address: {
+        line1: businessAddress?.line1 || 'TBD',
+        city: businessAddress?.city || 'TBD',
+        state: businessAddress?.state || 'TBD',
+        pincode: businessAddress?.pincode || '000000',
+      },
+      isActive: false,
+      isOpen: false,
+      approval: { status: 'pending' },
+      sellerApplication: {
+        businessName, businessType, ownerName, businessPhone, businessEmail,
+        gstNumber, fssaiNumber, businessAddress, submittedAt: new Date(),
+      },
+    });
+
+    await vendor.save();
+
+    await auditService.log({
+      actor: { id: userId, role: 'customer' },
+      action: 'SELLER_APPLICATION_SUBMITTED',
+      entity: { type: 'Vendor', id: vendor._id },
+      after: vendor.toObject(),
+    });
+
+    return vendor;
+  }
+
+  async listApplications({ status = 'pending', page = 1, limit = 20 } = {}) {
+    const filter = status === 'all' ? {} : { 'approval.status': status };
+    const skip = (page - 1) * limit;
+    const [vendors, total] = await Promise.all([
+      Vendor.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('ownerId', 'name phone email')
+        .lean(),
+      Vendor.countDocuments(filter),
+    ]);
+    return { vendors, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async getMyApplication(userId) {
+    return Vendor.findOne({ ownerId: userId }).sort({ createdAt: -1 }).lean();
+  }
+
+  async approveVendor(vendorId, adminUser) {
+    const Notification = require('../notifications/notification.model');
+    const User = require('../users/user.model');
+
+    const vendor = await Vendor.findById(vendorId);
+    if (!vendor) throw new Error('Vendor not found');
+    if (vendor.approval.status === 'approved') throw new Error('Vendor already approved');
+
+    vendor.approval.status = 'approved';
+    vendor.approval.reviewedBy = adminUser.id;
+    vendor.approval.reviewedAt = new Date();
+    vendor.isActive = true;
+    await vendor.save();
+
+    // Upgrade user role to merchant_owner
+    await User.findByIdAndUpdate(vendor.ownerId, {
+      role: 'merchant_owner',
+      restaurantId: vendor._id,
+    });
+
+    // Send notification to user
+    try {
+      await Notification.create({
+        user: vendor.ownerId,
+        title: 'Application Approved! 🎉',
+        body: `Congratulations! Your seller application for "${vendor.name}" has been approved. You can now access your seller dashboard.`,
+        type: 'seller_approved',
+        data: { vendorId: String(vendor._id) },
+      });
+    } catch (err) {}
+
+    await auditService.log({
+      actor: adminUser,
+      action: 'SELLER_APPLICATION_APPROVED',
+      entity: { type: 'Vendor', id: vendorId },
+      after: vendor.toObject(),
+    });
+
+    return vendor;
+  }
+
+  async rejectVendor(vendorId, adminUser, reason) {
+    const Notification = require('../notifications/notification.model');
+
+    const vendor = await Vendor.findById(vendorId);
+    if (!vendor) throw new Error('Vendor not found');
+
+    vendor.approval.status = 'rejected';
+    vendor.approval.reviewedBy = adminUser.id;
+    vendor.approval.reviewedAt = new Date();
+    vendor.approval.adminNote = reason || 'Application did not meet requirements';
+    await vendor.save();
+
+    // Notify user
+    try {
+      await Notification.create({
+        user: vendor.ownerId,
+        title: 'Application Update',
+        body: `Your seller application was not approved. Reason: ${reason || 'Did not meet requirements'}. You can re-apply with updated information.`,
+        type: 'seller_rejected',
+        data: { vendorId: String(vendor._id), reason },
+      });
+    } catch (err) {}
+
+    await auditService.log({
+      actor: adminUser,
+      action: 'SELLER_APPLICATION_REJECTED',
+      entity: { type: 'Vendor', id: vendorId },
+      after: vendor.toObject(),
+      reason,
+    });
+
+    return vendor;
+  }
 }
 
 module.exports = new VendorService();

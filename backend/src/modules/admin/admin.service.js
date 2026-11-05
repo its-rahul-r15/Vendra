@@ -237,23 +237,9 @@ async function updateFeeConfig(adminId, payload, meta = {}) {
 
 const Category = require('./category.model');
 
-const DEFAULT_CATEGORIES = [
-  { name: 'Pizza', image: 'https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg', order: 1, isActive: true },
-  { name: 'Burger', image: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg', order: 2, isActive: true },
-  { name: 'Paratha', image: 'https://images.pexels.com/photos/12737656/pexels-photo-12737656.jpeg', order: 3, isActive: true },
-  { name: 'Biryani', image: 'https://images.pexels.com/photos/1624487/pexels-photo-1624487.jpeg', order: 4, isActive: true },
-  { name: 'Noodles', image: 'https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg', order: 5, isActive: true },
-  { name: 'Desserts', image: 'https://images.pexels.com/photos/2144112/pexels-photo-2144112.jpeg', order: 6, isActive: true },
-];
-
 async function getCategories(onlyActive = false) {
-  const count = await Category.countDocuments();
-  if (count === 0) {
-    await Category.insertMany(DEFAULT_CATEGORIES);
-  }
-
   const filter = onlyActive ? { isActive: true } : {};
-  return Category.find(filter).sort({ order: 1, createdAt: 1 }).lean();
+  return Category.find(filter).populate('parentId', 'name slug').sort({ order: 1, createdAt: 1 }).lean();
 }
 
 async function createCategory(adminId, payload, meta = {}) {
@@ -261,6 +247,7 @@ async function createCategory(adminId, payload, meta = {}) {
   const category = await Category.create({
     name: payload.name,
     image: payload.image,
+    parentId: payload.parentId || null,
     order: payload.order !== undefined ? Number(payload.order) : count + 1,
     isActive: payload.isActive !== false,
     description: payload.description || '',
@@ -287,6 +274,7 @@ async function updateCategory(adminId, categoryId, payload, meta = {}) {
 
   if (payload.name !== undefined) category.name = payload.name;
   if (payload.image !== undefined) category.image = payload.image;
+  if (payload.parentId !== undefined) category.parentId = payload.parentId || null;
   if (payload.order !== undefined) category.order = Number(payload.order);
   if (payload.isActive !== undefined) category.isActive = Boolean(payload.isActive);
   if (payload.description !== undefined) category.description = payload.description;
@@ -307,6 +295,7 @@ async function updateCategory(adminId, categoryId, payload, meta = {}) {
 }
 
 async function deleteCategory(adminId, categoryId, meta = {}) {
+  await Category.updateMany({ parentId: categoryId }, { $set: { parentId: null } });
   const category = await Category.findByIdAndDelete(categoryId);
   if (!category) throw new NotFoundError('Category not found');
 
@@ -321,6 +310,24 @@ async function deleteCategory(adminId, categoryId, meta = {}) {
   });
 
   return category;
+}
+
+async function purgeFoodCategories(adminId, meta = {}) {
+  const foodKeywords = ['pizza', 'burger', 'paratha', 'biryani', 'noodles', 'desserts', 'rolls', 'thali', 'chai', 'coffee', 'ice cream', 'chinese', 'south indian', 'north indian', 'beverages'];
+  const regex = new RegExp(`(${foodKeywords.join('|')})`, 'i');
+  const result = await Category.deleteMany({ name: regex });
+
+  await logAudit({
+    adminId,
+    action: 'CATEGORY_PURGE_FOOD',
+    resource: 'Category',
+    resourceId: 'bulk',
+    changes: { deletedCount: result.deletedCount },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return { deletedCount: result.deletedCount };
 }
 
 async function reorderCategories(adminId, items = [], meta = {}) {
@@ -590,6 +597,7 @@ module.exports = {
   createCategory,
   updateCategory,
   deleteCategory,
+  purgeFoodCategories,
   reorderCategories,
   sendNotificationBroadcast,
   getNotificationHistory,

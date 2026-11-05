@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { vendorService, VendorApplication } from '../../services/vendor.service';
 import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet, Image, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,9 +57,17 @@ export default function ProfileScreen() {
     );
   };
 
+  const [sellerApp, setSellerApp] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user || user.role === 'customer') {
+      vendorService.getMyApplication().then(setSellerApp).catch(() => {});
+    }
+  }, [user]);
+
   const isRider = user?.role === 'delivery_partner';
-  const isOwner = user?.role === 'restaurant_owner';
-  const isAdmin = user?.role === 'admin';
+  const isOwner = user?.role === 'restaurant_owner' || user?.role === 'merchant_owner';
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   return (
     <View style={styles.container}>
@@ -111,6 +120,85 @@ export default function ProfileScreen() {
 
         {/* Content Body */}
         <View style={styles.bodyContainer}>
+
+          {/* Seller / Store Owner Section */}
+          {isOwner && (
+            <TouchableOpacity
+              style={[styles.sellerBanner, { borderColor: '#16A34A', backgroundColor: '#F0FDF4' }]}
+              onPress={() => router.push('/(owner)/dashboard')}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.sellerBannerIcon, { backgroundColor: '#DCFCE7' }]}>
+                <Ionicons name="storefront" size={26} color="#16A34A" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.sellerBannerTitle, { color: '#16A34A' }]}>Seller Dashboard</Text>
+                <Text style={styles.sellerBannerSub}>Manage menu, orders, catalog & store status</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#16A34A" />
+            </TouchableOpacity>
+          )}
+
+          {(!user?.role || user?.role === 'customer') && (
+            <>
+              {(!sellerApp || sellerApp?.approval?.status === 'rejected') && (
+                <TouchableOpacity
+                  style={styles.sellerBanner}
+                  onPress={() => router.push('/seller-apply')}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.sellerBannerIcon}>
+                    <Ionicons name="storefront" size={26} color="#D41208" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.sellerBannerTitle}>
+                      {sellerApp?.approval?.status === 'rejected' ? 'Re-Apply as Seller' : 'Become a Seller'}
+                    </Text>
+                    <Text style={styles.sellerBannerSub}>
+                      {sellerApp?.approval?.status === 'rejected'
+                        ? 'Update your details to submit again'
+                        : 'Register your Restaurant or Grocery mart on Ftafat'}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#D41208" />
+                </TouchableOpacity>
+              )}
+
+              {sellerApp?.approval?.status === 'pending' && (
+                <TouchableOpacity
+                  style={[styles.sellerBanner, { borderColor: '#D97706', backgroundColor: '#FFFBEB' }]}
+                  onPress={() => router.push('/seller-apply/status')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.sellerBannerIcon, { backgroundColor: '#FEF3C7' }]}>
+                    <Ionicons name="time" size={26} color="#D97706" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.sellerBannerTitle, { color: '#D97706' }]}>Seller Application Under Review</Text>
+                    <Text style={styles.sellerBannerSub}>Tap to check your application review status</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#D97706" />
+                </TouchableOpacity>
+              )}
+
+              {sellerApp?.approval?.status === 'approved' && (
+                <TouchableOpacity
+                  style={[styles.sellerBanner, { borderColor: '#16A34A', backgroundColor: '#F0FDF4' }]}
+                  onPress={() => router.push('/(owner)/dashboard')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.sellerBannerIcon, { backgroundColor: '#DCFCE7' }]}>
+                    <Ionicons name="checkmark-circle" size={26} color="#16A34A" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.sellerBannerTitle, { color: '#16A34A' }]}>Application Approved! 🎉</Text>
+                    <Text style={styles.sellerBannerSub}>Tap to open your Seller Dashboard</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#16A34A" />
+                </TouchableOpacity>
+              )}
+            </>
+          )}
 
           {/* Quick Links Row */}
           <View style={styles.statsRow}>
@@ -689,6 +777,40 @@ const styles = StyleSheet.create({
     ...Typography.subtitle,
     fontSize: 15,
     color: '#1E293B',
+  },
+  sellerBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF5F5',
+    borderWidth: 1.5,
+    borderColor: '#D41208',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    gap: 12,
+    shadowColor: '#D41208',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  sellerBannerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sellerBannerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#D41208',
+    marginBottom: 2,
+  },
+  sellerBannerSub: {
+    fontSize: 12,
+    color: '#6B7280',
   },
   versionText: {
     textAlign: 'center',

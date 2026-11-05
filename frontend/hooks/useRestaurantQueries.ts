@@ -53,6 +53,20 @@ export function useFoodCategoriesQuery() {
 }
 
 /**
+ * Hook to fetch categories with nested subcategories
+ */
+export function useCategoriesTreeQuery(vertical?: string) {
+  return useQuery<any[]>({
+    queryKey: ['categories', 'tree', vertical || 'all'],
+    queryFn: async () => {
+      const resp = await api.get('/categories/tree', { params: vertical ? { vertical } : {} });
+      return resp.data?.data?.categories || [];
+    },
+    staleTime: 1000 * 60 * 15,
+  });
+}
+
+/**
  * Hook to fetch, cache and deduplicate Must-Try signature dishes
  */
 export function useMustTryProductsQuery() {

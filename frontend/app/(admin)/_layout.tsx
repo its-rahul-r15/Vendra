@@ -82,6 +82,7 @@ export default function AdminLayout() {
       />
 
       {/* Secondary Screens Navigable via Dashboard Launchpad */}
+      <Tabs.Screen name="seller-applications" options={{ href: null, title: 'Seller Applications' }} />
       <Tabs.Screen name="grocery-products" options={{ href: null, title: 'Grocery Catalog' }} />
       <Tabs.Screen name="users" options={{ href: null, title: 'Users' }} />
       <Tabs.Screen name="categories" options={{ href: null, title: 'Categories' }} />

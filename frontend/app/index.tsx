@@ -44,8 +44,8 @@ export default function Index() {
   useEffect(() => {
     // 1. Android translucent status bar
     if (Platform.OS === 'android') {
-      StatusBar.setTranslucent(true);
-      StatusBar.setBackgroundColor('transparent');
+      StatusBar.setTranslucent?.(true);
+      StatusBar.setBackgroundColor?.('transparent');
     }
 
     // 2. Fetch live system configuration & vertical statuses

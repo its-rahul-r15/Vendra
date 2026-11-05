@@ -19,16 +19,16 @@ import { adminService, CategoryItem } from '../../services/admin.service';
 import { Typography } from '../../constants/Theme';
 
 const PRESET_IMAGES = [
-  { name: 'Pizza', url: 'https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg' },
-  { name: 'Burger', url: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg' },
-  { name: 'Biryani', url: 'https://images.pexels.com/photos/1624487/pexels-photo-1624487.jpeg' },
-  { name: 'Paratha', url: 'https://images.pexels.com/photos/12737656/pexels-photo-12737656.jpeg' },
-  { name: 'Noodles', url: 'https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg' },
-  { name: 'Desserts', url: 'https://images.pexels.com/photos/2144112/pexels-photo-2144112.jpeg' },
-  { name: 'Rolls', url: 'https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg' },
-  { name: 'Thali', url: 'https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg' },
-  { name: 'Coffee / Tea', url: 'https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg' },
-  { name: 'Ice Cream', url: 'https://images.pexels.com/photos/1362534/pexels-photo-1362534.jpeg' },
+  { name: 'Electronics', url: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=300&q=80' },
+  { name: 'Fashion & Clothing', url: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=300&q=80' },
+  { name: 'Groceries & Essentials', url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&q=80' },
+  { name: 'Home & Kitchen', url: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=300&q=80' },
+  { name: 'Beauty & Wellness', url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80' },
+  { name: 'Footwear & Shoes', url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80' },
+  { name: 'Mobiles & Gadgets', url: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&q=80' },
+  { name: 'Health & Personal Care', url: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=300&q=80' },
+  { name: 'Baby Care & Toys', url: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=300&q=80' },
+  { name: 'Sports & Fitness', url: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=300&q=80' },
 ];
 
 export default function AdminCategoriesScreen() {
@@ -45,6 +45,7 @@ export default function AdminCategoriesScreen() {
   const [formOrder, setFormOrder] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [formIsActive, setFormIsActive] = useState(true);
+  const [formParentId, setFormParentId] = useState<string | null>(null);
 
   const loadCategories = async () => {
     try {
@@ -63,6 +64,29 @@ export default function AdminCategoriesScreen() {
     loadCategories();
   }, []);
 
+  const handlePurgeFoodCategories = () => {
+    Alert.alert(
+      'Clean Legacy Food Categories',
+      'This will remove all sample food categories (Pizza, Burger, Biryani, etc.) from your marketplace.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clean All Food',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const res = await adminService.purgeFoodCategories();
+              Alert.alert('Cleaned 🎉', `${res?.deletedCount || 0} food categories removed.`);
+              loadCategories();
+            } catch (err) {
+              Alert.alert('Error', 'Failed to purge food categories.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const openAddModal = () => {
     setEditingId(null);
     setFormName('');
@@ -70,6 +94,7 @@ export default function AdminCategoriesScreen() {
     setFormOrder((categories.length + 1).toString());
     setFormDesc('');
     setFormIsActive(true);
+    setFormParentId(null);
     setModalVisible(true);
   };
 
@@ -80,12 +105,14 @@ export default function AdminCategoriesScreen() {
     setFormOrder((cat.order || 1).toString());
     setFormDesc(cat.description || '');
     setFormIsActive(cat.isActive !== false);
+    const pId = cat.parentId ? (typeof cat.parentId === 'object' ? (cat.parentId as any)._id : cat.parentId) : null;
+    setFormParentId(pId);
     setModalVisible(true);
   };
 
   const handleSaveCategory = async () => {
     if (!formName.trim()) {
-      Alert.alert('Validation Error', 'Please enter a category name (e.g. Pizza, Burger).');
+      Alert.alert('Validation Error', 'Please enter a category name (e.g. Electronics, Fashion, Groceries).');
       return;
     }
     if (!formImage.trim()) {
@@ -102,6 +129,7 @@ export default function AdminCategoriesScreen() {
           order: orderNum,
           description: formDesc.trim(),
           isActive: formIsActive,
+          parentId: formParentId || null,
         });
         Alert.alert('Success 🎉', 'Category updated successfully.');
       } else {
@@ -111,8 +139,9 @@ export default function AdminCategoriesScreen() {
           order: orderNum,
           description: formDesc.trim(),
           isActive: formIsActive,
+          parentId: formParentId || null,
         });
-        Alert.alert('Success 🎉', 'New category added to "What\'s on your mind?".');
+        Alert.alert('Success 🎉', 'New category added to marketplace.');
       }
       setModalVisible(false);
       loadCategories();
@@ -122,7 +151,7 @@ export default function AdminCategoriesScreen() {
   };
 
   const handleDeleteCategory = (cat: CategoryItem) => {
-    Alert.alert('Delete Category', `Are you sure you want to remove "${cat.name}" from "What's on your mind?"`, [
+    Alert.alert('Delete Category', `Are you sure you want to remove "${cat.name}"?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -132,6 +161,13 @@ export default function AdminCategoriesScreen() {
             await adminService.deleteCategory(cat._id);
             Alert.alert('Deleted', 'Category removed successfully.');
             loadCategories();
+          } catch (err: any) {
+            Alert.alert('Error', err.response?.data?.message || 'Failed to delete category.');
+          }
+        },
+      },
+    ]);
+  };
           } catch (err: any) {
             Alert.alert('Error', err.response?.data?.message || 'Failed to delete category.');
           }
@@ -244,7 +280,27 @@ export default function AdminCategoriesScreen() {
 
               {/* Info */}
               <View style={styles.catInfo}>
-                <Text style={styles.catName}>{cat.name}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <Text style={styles.catName}>{cat.name}</Text>
+                  {cat.parentId ? (
+                    <View style={styles.subcatTag}>
+                      <Text style={styles.subcatTagText}>
+                        Subcategory
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.maincatTag}>
+                      <Text style={styles.maincatTagText}>
+                        Main
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                {cat.parentId && typeof cat.parentId === 'object' && (cat.parentId as any).name ? (
+                  <Text style={{ fontSize: 11, color: '#4F46E5', fontWeight: '600', marginTop: 2 }}>
+                    ↳ Parent: {(cat.parentId as any).name}
+                  </Text>
+                ) : null}
                 {cat.description ? <Text style={styles.catDesc} numberOfLines={1}>{cat.description}</Text> : null}
                 <View style={styles.statusRow}>
                   <View style={[styles.statusDot, { backgroundColor: cat.isActive ? '#10B981' : '#EF4444' }]} />
@@ -355,6 +411,43 @@ export default function AdminCategoriesScreen() {
                   <Image source={{ uri: formImage }} style={styles.previewImage} />
                 </View>
               ) : null}
+
+              {/* Category Hierarchy / Parent */}
+              <Text style={styles.modalLabel}>Category Level</Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+                <TouchableOpacity
+                  style={[
+                    styles.parentChip,
+                    !formParentId && styles.parentChipActive,
+                  ]}
+                  onPress={() => setFormParentId(null)}
+                >
+                  <Text style={[styles.parentChipText, !formParentId && styles.parentChipTextActive]}>
+                    👑 Main Category
+                  </Text>
+                </TouchableOpacity>
+                {categories
+                  .filter((c) => c._id !== editingId && !c.parentId)
+                  .map((parent) => (
+                    <TouchableOpacity
+                      key={parent._id}
+                      style={[
+                        styles.parentChip,
+                        formParentId === parent._id && styles.parentChipActive,
+                      ]}
+                      onPress={() => setFormParentId(parent._id)}
+                    >
+                      <Text
+                        style={[
+                          styles.parentChipText,
+                          formParentId === parent._id && styles.parentChipTextActive,
+                        ]}
+                      >
+                        ↳ {parent.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+              </View>
 
               {/* Description */}
               <Text style={styles.modalLabel}>Description (Optional)</Text>
@@ -548,4 +641,36 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalSubmitText: { ...Typography.button, color: '#FFF', fontSize: 15 },
+  subcatTag: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  subcatTagText: { fontSize: 10, color: '#4F46E5', fontWeight: '700' },
+  maincatTag: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  maincatTagText: { fontSize: 10, color: '#16A34A', fontWeight: '700' },
+  parentChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  parentChipActive: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#4F46E5',
+  },
+  parentChipText: { fontSize: 12, color: '#475569', fontWeight: '600' },
+  parentChipTextActive: { color: '#4F46E5', fontWeight: '700' },
 });

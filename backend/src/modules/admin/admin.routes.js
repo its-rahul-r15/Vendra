@@ -27,6 +27,7 @@ router.post('/categories', controller.createCategory);
 router.put('/categories/reorder', controller.reorderCategories);
 router.put('/categories/:id', controller.updateCategory);
 router.delete('/categories/:id', controller.deleteCategory);
+router.post('/categories/purge-food', controller.purgeFoodCategories);
 
 router.get('/orders', controller.listOrders);
 router.patch('/orders/:id/status', controller.updateOrderStatus);
@@ -36,6 +37,36 @@ router.get('/notifications', controller.getNotificationHistory);
 
 router.get('/home-config', controller.getHomeConfig);
 router.put('/home-config', controller.updateHomeConfig);
+
+// Seller applications management
+router.get('/seller-applications', async (req, res) => {
+  const vendorService = require('../vendors/vendor.service');
+  const { success } = require('../../common/response/apiResponse');
+  const result = await vendorService.listApplications(req.query);
+  return success(res, result);
+});
+
+router.post('/seller-applications/:id/approve', async (req, res) => {
+  const vendorService = require('../vendors/vendor.service');
+  const { success } = require('../../common/response/apiResponse');
+  try {
+    const vendor = await vendorService.approveVendor(req.params.id, req.user);
+    return success(res, { vendor }, 'Vendor approved successfully');
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/seller-applications/:id/reject', async (req, res) => {
+  const vendorService = require('../vendors/vendor.service');
+  const { success } = require('../../common/response/apiResponse');
+  try {
+    const vendor = await vendorService.rejectVendor(req.params.id, req.user, req.body.reason);
+    return success(res, { vendor }, 'Application rejected');
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+});
 
 module.exports = router;
 

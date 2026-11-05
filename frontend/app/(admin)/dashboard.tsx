@@ -163,6 +163,19 @@ export default function AdminDashboardScreen() {
           </View>
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => router.push('/(admin)/seller-applications' as any)} style={styles.actionRowCard} activeOpacity={0.7}>
+          <View style={[styles.actionIconCircle, { backgroundColor: '#FEF3C7' }]}>
+            <Ionicons name="shield-checkmark" size={24} color="#D97706" />
+          </View>
+          <View style={styles.actionTextContainer}>
+            <Text style={styles.actionTitle}>Seller Verification & Approvals</Text>
+            <Text style={styles.actionSubtitle}>Review incoming seller onboarding applications & approve merchants</Text>
+          </View>
+          <View style={styles.actionArrow}>
+            <Ionicons name="chevron-forward" size={18} color="#D97706" />
+          </View>
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={() => router.push('/(admin)/restaurants')} style={styles.actionRowCard} activeOpacity={0.7}>
           <View style={[styles.actionIconCircle, { backgroundColor: '#DCFCE7' }]}>
             <Ionicons name="storefront" size={24} color="#16A34A" />

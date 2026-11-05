@@ -17,6 +17,59 @@ class CatalogService {
     return Category.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
   }
 
+  async getCategoriesTree({ vertical = null } = {}) {
+    const filter = { isActive: true };
+    if (vertical) {
+      filter.$or = [{ vertical }, { vertical: 'both' }];
+    }
+    const all = await Category.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
+
+    // Build tree: parent categories with nested subcategories
+    const parents = all.filter(c => !c.parentId);
+    const children = all.filter(c => c.parentId);
+
+    return parents.map(parent => ({
+      ...parent,
+      subcategories: children.filter(
+        child => child.parentId && child.parentId.toString() === parent._id.toString()
+      ),
+    }));
+  }
+
+  async updateCategory(categoryId, data, actor = null) {
+    const category = await Category.findById(categoryId);
+    if (!category) throw new Error('Category not found');
+    const before = category.toObject();
+    Object.assign(category, data);
+    await category.save();
+    if (actor) {
+      await auditService.log({
+        actor,
+        action: 'CATEGORY_UPDATED',
+        entity: { type: 'Category', id: category._id },
+        before,
+        after: category.toObject(),
+      });
+    }
+    return category;
+  }
+
+  async deleteCategory(categoryId, actor = null) {
+    // Reassign children to no parent
+    await Category.updateMany({ parentId: categoryId }, { $set: { parentId: null } });
+    const category = await Category.findByIdAndDelete(categoryId);
+    if (!category) throw new Error('Category not found');
+    if (actor) {
+      await auditService.log({
+        actor,
+        action: 'CATEGORY_DELETED',
+        entity: { type: 'Category', id: categoryId },
+        before: category.toObject(),
+      });
+    }
+    return { deleted: true };
+  }
+
   async createCategory(data, actor = null) {
     const category = new Category(data);
     await category.save();

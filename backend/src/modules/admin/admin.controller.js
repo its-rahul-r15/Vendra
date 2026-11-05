@@ -76,6 +76,12 @@ async function deleteCategory(req, res) {
   return success(res, null, 'Category deleted successfully');
 }
 
+async function purgeFoodCategories(req, res) {
+  const meta = { ip: req.ip, userAgent: req.headers['user-agent'] };
+  const result = await adminService.purgeFoodCategories(req.user.id, meta);
+  return success(res, result, 'Food categories purged successfully');
+}
+
 async function reorderCategories(req, res) {
   const meta = { ip: req.ip, userAgent: req.headers['user-agent'] };
   const categories = await adminService.reorderCategories(req.user.id, req.body.items, meta);
@@ -130,6 +136,7 @@ module.exports = {
   createCategory,
   updateCategory,
   deleteCategory,
+  purgeFoodCategories,
   reorderCategories,
   sendNotification,
   getNotificationHistory,

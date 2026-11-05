@@ -231,6 +231,14 @@ export const adminService = {
   },
 
   /**
+   * Purge legacy food categories
+   */
+  async purgeFoodCategories(): Promise<{ deletedCount: number }> {
+    const response = await api.post<ApiResponse<{ deletedCount: number }>>('/admin/categories/purge-food');
+    return response.data.data;
+  },
+
+  /**
    * Reorder categories
    */
   async reorderCategories(items: { id: string; order: number }[]): Promise<CategoryItem[]> {
@@ -372,6 +380,32 @@ export const adminService = {
   async deleteRestaurantCategory(restaurantId: string, categoryId: string): Promise<void> {
     await api.delete(`/restaurants/${restaurantId}/menu/categories/${categoryId}`);
   },
+
+  /**
+   * List seller applications
+   */
+  async listSellerApplications(status: 'pending' | 'approved' | 'rejected' | 'all' = 'pending'): Promise<any[]> {
+    const response = await api.get<any>('/admin/seller-applications', { params: { status } });
+    const d = response.data.data;
+    if (Array.isArray(d)) return d;
+    return d?.vendors || d?.items || [];
+  },
+
+  /**
+   * Approve a seller application
+   */
+  async approveSellerApplication(vendorId: string): Promise<any> {
+    const response = await api.post<any>(`/admin/seller-applications/${vendorId}/approve`);
+    return response.data.data?.vendor;
+  },
+
+  /**
+   * Reject a seller application
+   */
+  async rejectSellerApplication(vendorId: string, reason: string): Promise<any> {
+    const response = await api.post<any>(`/admin/seller-applications/${vendorId}/reject`, { reason });
+    return response.data.data?.vendor;
+  },
 };
 
 export interface BroadcastNotificationPayload {
@@ -401,6 +435,8 @@ export interface CategoryItem {
   order: number;
   isActive: boolean;
   description?: string;
+  parentId?: string | null;
+  subcategories?: CategoryItem[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -411,6 +447,7 @@ export interface CreateCategoryPayload {
   order?: number;
   isActive?: boolean;
   description?: string;
+  parentId?: string | null;
 }
 
 export interface CustomFeeItem {

@@ -655,14 +655,13 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Top Search Bar Row with Kinare/Beside VEG Switch */}
+            {/* Top Search Bar Row */}
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 marginHorizontal: 16,
                 marginBottom: 12,
-                gap: 10,
               }}
             >
               <TouchableOpacity
@@ -675,109 +674,24 @@ export default function HomeScreen() {
                   paddingHorizontal: 14,
                   height: 50,
                 }}
-                onPress={() => router.push({ pathname: '/(tabs)/search', params: vegOnly ? { veg: 'true' } : {} } as any)}
+                onPress={() => router.push('/(tabs)/search' as any)}
                 activeOpacity={0.9}
               >
                 <Ionicons name="search" size={20} color="#4B5563" style={{ marginRight: 8 }} />
                 <View style={{ flex: 1, justifyContent: 'center' }}>
                   <TypewriterText
-                    texts={['Search "Biryani"', 'Search "Pizza"', 'Search "Burger"']}
+                    texts={[
+                      'Search for products, items, stores...',
+                      'Search "Groceries", "Snacks", "Electronics"...',
+                      'Search any seller, brand or item...',
+                    ]}
                     style={{ fontFamily: STYLISH_FONT, fontSize: 14, color: '#4B5563' }}
                   />
                 </View>
                 <View style={{ width: 1, height: 20, backgroundColor: '#E5E7EB', marginHorizontal: 8 }} />
                 <Ionicons name="mic" size={20} color={Colors.primary} />
               </TouchableOpacity>
-
-              <TouchableOpacity
-                accessibilityRole="switch"
-                accessibilityLabel="Pure vegetarian food only"
-                accessibilityState={{ checked: vegOnly }}
-                activeOpacity={0.85}
-                onPress={() => setVegOnly((prev) => !prev)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  height: 42,
-                  paddingHorizontal: 9,
-                  borderRadius: 14,
-                  backgroundColor: vegOnly ? '#0B7A55' : '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: vegOnly ? '#0B7A55' : '#DCE7DC',
-                  shadowColor: vegOnly ? '#0B7A55' : '#233323',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: vegOnly ? 0.18 : 0.05,
-                  shadowRadius: 5,
-                  elevation: 2,
-                  gap: 6,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: BOLD_FONT,
-                    fontSize: 11,
-                    color: vegOnly ? '#FFFFFF' : '#31523A',
-                    letterSpacing: 0.4,
-                  }}
-                >
-                  {vegOnly ? 'VEG ON' : 'VEG'}
-                </Text>
-                <View
-                  style={{
-                    width: 26,
-                    height: 15,
-                    borderRadius: 8,
-                    backgroundColor: vegOnly ? 'rgba(255,255,255,0.35)' : '#DCE4DC',
-                    padding: 2,
-                    justifyContent: 'center',
-                    alignItems: vegOnly ? 'flex-end' : 'flex-start',
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 11,
-                      height: 11,
-                      borderRadius: 6,
-                      backgroundColor: '#FFFFFF',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 1,
-                      elevation: 1,
-                    }}
-                  />
-                </View>
-              </TouchableOpacity>
             </View>
-
-            {/* Active Veg Mode Notification Banner */}
-            {vegOnly && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  backgroundColor: '#ECFDF5',
-                  marginHorizontal: 16,
-                  marginBottom: 10,
-                  paddingVertical: 6,
-                  paddingHorizontal: 12,
-                  borderRadius: 10,
-                  borderWidth: 1,
-                  borderColor: '#A7F3D0',
-                }}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-                  <Ionicons name="leaf" size={14} color="#059669" />
-                  <Text style={{ fontFamily: BOLD_FONT, fontSize: 11, color: '#065F46' }}>
-                    Veg Mode Active: Showing Pure Veg & vegetarian dishes
-                  </Text>
-                </View>
-                <TouchableOpacity onPress={() => setVegOnly(false)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                  <Ionicons name="close-circle" size={16} color="#059669" />
-                </TouchableOpacity>
-              </View>
-            )}
 
             {/* Mode Switcher - only visible when Grocery is enabled */}
             {isGroceryEnabled && (

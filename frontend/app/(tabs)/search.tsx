@@ -168,7 +168,7 @@ export default function SearchScreen() {
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
-            placeholder="Search restaurants, dishes..."
+            placeholder="Search products, items, stores..."
             placeholderTextColor="#9CA3AF"
             value={query}
             onChangeText={setQuery}
@@ -188,75 +188,6 @@ export default function SearchScreen() {
             </TouchableOpacity>
           )}
         </View>
-
-        {/* VEG Mode Toggle Button Beside Search Bar */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => setVegOnly((prev) => !prev)}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginLeft: 8,
-            paddingHorizontal: 8,
-            height: 46,
-            borderRadius: 12,
-            backgroundColor: vegOnly ? '#ECFDF5' : '#F9FAFB',
-            borderWidth: 1.5,
-            borderColor: vegOnly ? '#10B981' : '#E5E7EB',
-            gap: 5,
-          }}
-        >
-          <View
-            style={{
-              width: 13,
-              height: 13,
-              borderWidth: 1.5,
-              borderColor: vegOnly ? '#059669' : '#16A34A',
-              borderRadius: 2.5,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#FFF',
-            }}
-          >
-            <View
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: 2.5,
-                backgroundColor: vegOnly ? '#059669' : '#16A34A',
-              }}
-            />
-          </View>
-          <Text
-            style={{
-              fontFamily: BOLD_FONT,
-              fontSize: 11,
-              color: vegOnly ? '#065F46' : '#4B5563',
-            }}
-          >
-            VEG
-          </Text>
-          <View
-            style={{
-              width: 24,
-              height: 14,
-              borderRadius: 7,
-              backgroundColor: vegOnly ? '#10B981' : '#D1D5DB',
-              padding: 2,
-              justifyContent: 'center',
-              alignItems: vegOnly ? 'flex-end' : 'flex-start',
-            }}
-          >
-            <View
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 5,
-                backgroundColor: '#FFFFFF',
-              }}
-            />
-          </View>
-        </TouchableOpacity>
       </View>
 
       {/* Tabs & Veg Filter bar if query is active */}

@@ -16,19 +16,21 @@ async function generateAndStoreOtp(phone) {
   const key = `${OTP_PREFIX}${phone}`;
 
   await redis.set(key, otp, 'EX', env.otp.ttlSeconds);
-  logger.debug('[OTP] Generated and stored locally', { phone, ttl: env.otp.ttlSeconds });
+  if (env.node.isDevelopment) {
+    logger.info(`[OTP] DEV MODE - OTP for ${phone} is: ${otp}`);
+  } else {
+    logger.debug('[OTP] Generated and stored locally', { phone, ttl: env.otp.ttlSeconds });
+  }
 
-  // Send via Wakit WhatsApp API
+  // Send via Wakit WhatsApp API asynchronously so the API response returns instantly (<50ms)
   if (env.wakit.apiKey) {
-    try {
-      await sendOtpViaWakit(phone, otp);
-      logger.info('[OTP] WhatsApp OTP sent via Wakit', { phone });
-    } catch (err) {
-      logger.warn('[OTP] Wakit WhatsApp send error', { phone, err: err.message });
-      if (env.node.isProduction) {
-        throw new BusinessError('Failed to send OTP via WhatsApp. Please try again.', 'OTP_SEND_FAILED');
-      }
-    }
+    sendOtpViaWakit(phone, otp)
+      .then(() => {
+        logger.info('[OTP] WhatsApp OTP sent via Wakit', { phone });
+      })
+      .catch((err) => {
+        logger.warn('[OTP] Wakit WhatsApp send error', { phone, err: err.message });
+      });
   } else {
     logger.warn('[OTP] Wakit API key not configured — WhatsApp message skipped', { phone });
   }

@@ -53,6 +53,30 @@ class CatalogController {
     );
     return res.json(formatResponse({ listing }));
   }
+
+  async getCategoriesTree(req, res) {
+    const { vertical } = req.query;
+    const tree = await catalogService.getCategoriesTree({ vertical });
+    return res.json(formatResponse({ categories: tree }));
+  }
+
+  async updateCategory(req, res) {
+    try {
+      const category = await catalogService.updateCategory(req.params.id, req.body, req.user);
+      return res.json(formatResponse({ category }));
+    } catch (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  async deleteCategory(req, res) {
+    try {
+      const result = await catalogService.deleteCategory(req.params.id, req.user);
+      return res.json(formatResponse(result));
+    } catch (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+  }
 }
 
 module.exports = new CatalogController();

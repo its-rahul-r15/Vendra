@@ -10,6 +10,7 @@ const router = Router();
 
 // Public read endpoints
 router.get('/categories', (req, res) => controller.getCategories(req, res));
+router.get('/categories/tree', (req, res) => controller.getCategoriesTree(req, res));
 router.get('/search', (req, res) => controller.search(req, res));
 
 // Admin & Merchant write endpoints
@@ -18,6 +19,20 @@ router.post(
   authenticate,
   requirePermission(PERMISSIONS.CATALOG_WRITE),
   (req, res) => controller.createCategory(req, res)
+);
+
+router.patch(
+  '/categories/:id',
+  authenticate,
+  requirePermission(PERMISSIONS.CATALOG_WRITE),
+  (req, res) => controller.updateCategory(req, res)
+);
+
+router.delete(
+  '/categories/:id',
+  authenticate,
+  requirePermission(PERMISSIONS.CATALOG_WRITE),
+  (req, res) => controller.deleteCategory(req, res)
 );
 
 router.post(
