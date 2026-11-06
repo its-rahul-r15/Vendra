@@ -6,10 +6,10 @@ export function Footer() {
       <div className="container-app grid gap-8 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-display text-3xl tracking-wide">VENDRA</span>
+            <span className="font-display text-3xl tracking-wide">Vendra</span>
           </div>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/65">
-            Your one-stop ecommerce destination. Shop electronics, fashion, home & more with fast delivery.
+            Shop electronics, watches and accessories from one convenient place.
           </p>
         </div>
 
@@ -18,6 +18,7 @@ export function Footer() {
           <div className="mt-3 flex flex-col gap-2 text-sm text-white/65">
             <Link to="/" className="hover:text-white">Home</Link>
             <Link to="/search" className="hover:text-white">Search</Link>
+            <Link to="/search?filter=deals" className="hover:text-white">Deals</Link>
             <Link to="/orders" className="hover:text-white">Orders</Link>
             <Link to="/cart" className="hover:text-white">Cart</Link>
           </div>
@@ -27,9 +28,7 @@ export function Footer() {
           <h4 className="font-display text-xl tracking-wide text-white/90">Support</h4>
           <div className="mt-3 flex flex-col gap-2 text-sm text-white/65">
             <Link to="/account" className="hover:text-white">Account</Link>
-            <a href="mailto:support@vendra.com" className="hover:text-white">
-              support@vendra.com
-            </a>
+            <span>Need help? Check your account orders.</span>
           </div>
         </div>
       </div>

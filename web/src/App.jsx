@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore } from '@/stores/cart.store'
 import { getAccessToken } from '@/api'
 import { HomePage } from '@/pages/HomePage'
-import { RestaurantPage } from '@/pages/RestaurantPage'
+import { ProductPage } from '@/pages/ProductPage'
 import { SearchPage } from '@/pages/SearchPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { CartPage } from '@/pages/CartPage'
@@ -46,7 +46,7 @@ function AppRoutes() {
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
         <Route path="search" element={<SearchPage />} />
-        <Route path="restaurants/:id" element={<RestaurantPage />} />
+        <Route path="products/:id" element={<ProductPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />

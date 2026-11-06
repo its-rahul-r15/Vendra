@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ShoppingBag } from 'lucide-react'
 import { useCartStore } from '@/stores/cart.store'
-import { formatINR } from '@/utils/money'
+import { formatINRFromPaise } from '@/utils/money'
 
 export function CartDock() {
   const cart = useCartStore((s) => s.cart)
@@ -23,7 +23,7 @@ export function CartDock() {
             <p className="text-sm font-bold">
               {itemCount} item{itemCount > 1 ? 's' : ''}
             </p>
-            <p className="text-xs text-white/65">{formatINR(cart.subtotal || 0)}</p>
+            <p className="text-xs text-white/65">{formatINRFromPaise(cart.subtotal || 0)}</p>
           </div>
         </div>
         <span className="text-sm font-bold text-ember">View cart →</span>

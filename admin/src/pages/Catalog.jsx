@@ -1,500 +1,174 @@
-import React, { useState, useMemo } from 'react';
-import {
-  Layers,
-  Plus,
-  Search,
-  CheckCircle,
-  XCircle,
-  Tag,
-  Package,
-  Edit2,
-  Trash2,
-  X,
-  Power,
-  Image as ImageIcon,
-} from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { api } from '../services/api';
-import { formatRupees, formatPaise } from '../utils/formatters';
-import { Pagination } from '../components/common/Pagination';
+import { useEffect, useMemo, useState } from 'react'
+import { Edit2, Layers, Plus, Search, Tag, Trash2, X } from 'lucide-react'
+import { useApp } from '../context/AppContext'
+import { api } from '../services/api'
+import { formatRupees, paiseToRupees, rupeesToPaise } from '../utils/formatters'
 
-const PRESET_IMAGES = [
-  { name: 'Electronics', url: 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg' },
-  { name: 'Fashion', url: 'https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg' },
-  { name: 'Home & Kitchen', url: 'https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg' },
-  { name: 'Beauty', url: 'https://images.pexels.com/photos/2113855/pexels-photo-2113855.jpeg' },
-  { name: 'Sports', url: 'https://images.pexels.com/photos/863988/pexels-photo-863988.jpeg' },
-  { name: 'Books', url: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg' },
-  { name: 'Toys', url: 'https://images.pexels.com/photos/35537/child-children-girl-happy.jpg' },
-  { name: 'Grocery', url: 'https://images.pexels.com/photos/1367242/pexels-photo-1367242.jpeg' },
-  { name: 'Furniture', url: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg' },
-  { name: 'Accessories', url: 'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg' },
-];
+const EMPTY_PRODUCT = { name: '', categoryId: '', description: '', image: '', price: '', mrp: '', stock: 10, sku: '', unit: 'piece', tags: '', isActive: true }
+const EMPTY_CATEGORY = { name: '', image: '', description: '', sortOrder: 0, isActive: true }
 
 export const Catalog = () => {
-  const { categories, setCategories, products, toggleItemStock, showToast } = useApp();
-  const [activeTab, setActiveTab] = useState('PRODUCTS');
-  const [selectedCatFilter, setSelectedCatFilter] = useState('ALL');
-  const [search, setSearch] = useState('');
+  const { showToast } = useApp()
+  const [tab, setTab] = useState('products')
+  const [categories, setCategories] = useState([])
+  const [products, setProducts] = useState([])
+  const [search, setSearch] = useState('')
+  const [busy, setBusy] = useState(true)
+  const [productModal, setProductModal] = useState(false)
+  const [categoryModal, setCategoryModal] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
+  const [editingCategory, setEditingCategory] = useState(null)
+  const [productForm, setProductForm] = useState(EMPTY_PRODUCT)
+  const [categoryForm, setCategoryForm] = useState(EMPTY_CATEGORY)
+  const [saving, setSaving] = useState(false)
 
-  // Category Modal State
-  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
-  const [editingCat, setEditingCat] = useState(null);
-  const [catForm, setCatForm] = useState({
-    name: '',
-    image: PRESET_IMAGES[0].url,
-    order: 1,
-    isActive: true,
-  });
-
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  const filteredProducts = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    return (products || []).filter((item) => {
-      const matchCat = selectedCatFilter === 'ALL' || item.category === selectedCatFilter;
-      const matchSearch =
-        !q ||
-        (item.name || '').toLowerCase().includes(q) ||
-        (item.category || '').toLowerCase().includes(q);
-      return matchCat && matchSearch;
-    });
-  }, [products, selectedCatFilter, search]);
-
-  const paginatedProducts = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredProducts.slice(start, start + pageSize);
-  }, [filteredProducts, page, pageSize]);
-
-  const handleOpenAddCat = () => {
-    setEditingCat(null);
-    setCatForm({
-      name: '',
-      image: PRESET_IMAGES[0].url,
-      order: categories.length + 1,
-      isActive: true,
-    });
-    setIsCatModalOpen(true);
-  };
-
-  const handleOpenEditCat = (cat) => {
-    setEditingCat(cat);
-    setCatForm({
-      name: cat.name || '',
-      image: cat.image || PRESET_IMAGES[0].url,
-      order: cat.order || 1,
-      isActive: cat.active !== false,
-    });
-    setIsCatModalOpen(true);
-  };
-
-  const handleSaveCategory = async (e) => {
-    e.preventDefault();
-    if (!catForm.name.trim()) return;
-
+  async function loadCatalog() {
+    setBusy(true)
     try {
-      if (editingCat) {
-        await api.updateCategory(editingCat.id, {
-          name: catForm.name.trim(),
-          image: catForm.image.trim(),
-          order: Number(catForm.order) || 1,
-          isActive: catForm.isActive,
-        });
-        setCategories((prev) =>
-          prev.map((c) =>
-            c.id === editingCat.id
-              ? { ...c, name: catForm.name.trim(), image: catForm.image.trim(), order: Number(catForm.order), active: catForm.isActive }
-              : c
-          )
-        );
-        showToast(`Category "${catForm.name}" updated!`);
-      } else {
-        const created = await api.createCategory({
-          name: catForm.name.trim(),
-          image: catForm.image.trim(),
-          order: Number(catForm.order) || categories.length + 1,
-          isActive: catForm.isActive,
-        });
-        const newCat = {
-          id: created?._id || `CAT-${Date.now().toString().slice(-3)}`,
-          name: catForm.name.trim(),
-          image: catForm.image.trim(),
-          itemCount: 0,
-          order: Number(catForm.order) || categories.length + 1,
-          active: catForm.isActive,
-        };
-        setCategories([...categories, newCat]);
-        showToast(`Category "${newCat.name}" created!`);
-      }
-      setIsCatModalOpen(false);
-    } catch (err) {
-      showToast(`Failed to save category: ${err.message}`, 'error');
+      const [categoryList, productList] = await Promise.all([
+        api.getCommerceCategories(true),
+        api.getCommerceProducts(true),
+      ])
+      setCategories(categoryList)
+      setProducts(productList)
+    } catch (error) {
+      showToast(`Could not load catalog: ${error.message}`, 'error')
+    } finally {
+      setBusy(false)
     }
-  };
+  }
 
-  const handleDeleteCategory = async (id, name) => {
-    if (!window.confirm(`Delete category "${name}"? This cannot be undone.`)) return;
-    try {
-      await api.deleteCategory(id);
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-      showToast(`Category "${name}" deleted!`);
-    } catch (err) {
-      showToast(`Failed to delete category: ${err.message}`, 'error');
+  useEffect(() => { loadCatalog() }, [])
+
+  const filteredProducts = useMemo(() => products.filter((listing) => {
+    const item = listing.itemId || {}
+    const query = search.trim().toLowerCase()
+    return !query || item.name?.toLowerCase().includes(query) || item.categoryId?.name?.toLowerCase().includes(query)
+  }), [products, search])
+
+  function openProduct(listing = null) {
+    setEditingProduct(listing)
+    if (!listing) setProductForm({ ...EMPTY_PRODUCT, categoryId: categories.find((category) => category.isActive !== false)?._id || '' })
+    else {
+      const item = listing.itemId || {}
+      setProductForm({
+        name: item.name || '',
+        categoryId: item.categoryId?._id || item.categoryId || '',
+        description: item.description || '',
+        image: item.media?.find((media) => media.isPrimary)?.url || item.media?.[0]?.url || '',
+        price: String(paiseToRupees(listing.pricePaise || 0)),
+        mrp: String(paiseToRupees(listing.mrpPaise || 0)),
+        stock: listing.stock?.available ?? 0,
+        sku: item.attributes?.barcode || '',
+        unit: item.attributes?.unit || 'piece',
+        tags: (item.tags || []).join(', '),
+        isActive: listing.isAvailable !== false && item.status === 'active',
+      })
     }
-  };
+    setProductModal(true)
+  }
+
+  async function saveProduct(event) {
+    event.preventDefault()
+    setSaving(true)
+    const payload = {
+      name: productForm.name.trim(),
+      categoryId: productForm.categoryId,
+      description: productForm.description.trim(),
+      image: productForm.image.trim(),
+      pricePaise: rupeesToPaise(productForm.price),
+      mrpPaise: rupeesToPaise(productForm.mrp || productForm.price),
+      stock: Number(productForm.stock) || 0,
+      sku: productForm.sku.trim(),
+      unit: productForm.unit.trim() || 'piece',
+      tags: productForm.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+      isActive: productForm.isActive,
+    }
+    try {
+      if (editingProduct) await api.updateCommerceProduct(editingProduct._id, payload)
+      else await api.createCommerceProduct(payload)
+      showToast(editingProduct ? 'Product updated' : 'Product added')
+      setProductModal(false)
+      await loadCatalog()
+    } catch (error) {
+      showToast(`Could not save product: ${error.response?.data?.message || error.message}`, 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function openCategory(category = null) {
+    setEditingCategory(category)
+    setCategoryForm(category ? {
+      name: category.name || '', image: category.image || category.iconUrl || '',
+      description: category.description || '', sortOrder: category.sortOrder || category.order || 0,
+      isActive: category.isActive !== false,
+    } : { ...EMPTY_CATEGORY, sortOrder: categories.length })
+    setCategoryModal(true)
+  }
+
+  async function saveCategory(event) {
+    event.preventDefault()
+    setSaving(true)
+    const payload = {
+      name: categoryForm.name.trim(),
+      image: categoryForm.image.trim(),
+      iconUrl: categoryForm.image.trim(),
+      description: categoryForm.description.trim(),
+      sortOrder: Number(categoryForm.sortOrder) || 0,
+      isActive: categoryForm.isActive,
+      vertical: 'commerce',
+    }
+    try {
+      if (editingCategory) await api.updateCommerceCategory(editingCategory._id, payload)
+      else await api.createCommerceCategory(payload)
+      showToast(editingCategory ? 'Category updated' : 'Category created')
+      setCategoryModal(false)
+      await loadCatalog()
+    } catch (error) {
+      showToast(`Could not save category: ${error.response?.data?.message || error.message}`, 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function deleteProduct(listing) {
+    const name = listing.itemId?.name || 'this product'
+    if (!window.confirm(`Archive ${name} from the storefront?`)) return
+    try {
+      await api.deleteCommerceProduct(listing._id)
+      showToast('Product archived')
+      await loadCatalog()
+    } catch (error) {
+      showToast(`Could not archive product: ${error.message}`, 'error')
+    }
+  }
+
+  async function deleteCategory(category) {
+    if (!window.confirm(`Delete the ${category.name} category?`)) return
+    try {
+      await api.deleteCommerceCategory(category._id)
+      showToast('Category deleted')
+      await loadCatalog()
+    } catch (error) {
+      showToast(`Could not delete category: ${error.message}`, 'error')
+    }
+  }
+
+  const inputClass = 'w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-indigo-500'
+  const labelClass = 'mb-1.5 block text-xs font-semibold text-slate-300'
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">
-            Product Catalog
-          </h2>
-          <p className="text-xs text-slate-400">
-            Manage products, categories, pricing and inventory
-          </p>
-        </div>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-widest text-indigo-400">Storefront controls</p><h1 className="mt-1 text-3xl font-extrabold text-white">Products & categories</h1><p className="mt-1 text-sm text-slate-400">Changes here appear in the customer marketplace.</p></div><div className="flex gap-2"><button onClick={() => openCategory()} className="inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800"><Tag size={15} /> Add category</button><button onClick={() => openProduct()} disabled={!categories.some((category) => category.isActive !== false)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-600 disabled:opacity-50"><Plus size={16} /> Add product</button></div></div>
 
-        <div className="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
-          <button
-            onClick={() => setActiveTab('PRODUCTS')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'PRODUCTS'
-                ? 'bg-indigo-500 text-white shadow'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Products ({(products || []).length})
-          </button>
-          <button
-            onClick={() => setActiveTab('CATEGORIES')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'CATEGORIES'
-                ? 'bg-indigo-500 text-white shadow'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Categories ({categories.length})
-          </button>
-        </div>
-      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-2"><div className="flex gap-1"><button onClick={() => setTab('products')} className={`rounded-xl px-4 py-2 text-sm font-semibold ${tab === 'products' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-white'}`}>Products ({products.length})</button><button onClick={() => setTab('categories')} className={`rounded-xl px-4 py-2 text-sm font-semibold ${tab === 'categories' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-white'}`}>Categories ({categories.length})</button></div>{tab === 'products' ? <div className="relative w-full sm:w-72"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products or categories" className="w-full rounded-xl border border-slate-800 bg-slate-950 py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-indigo-500" /></div> : null}</div>
 
-      {activeTab === 'PRODUCTS' && (
-        <div className="space-y-4">
-          {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-              <button
-                onClick={() => setSelectedCatFilter('ALL')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                  selectedCatFilter === 'ALL'
-                    ? 'bg-slate-200 text-slate-900 font-bold'
-                    : 'bg-slate-900 text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                All Products
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setSelectedCatFilter(c.name)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                    selectedCatFilter === c.name
-                      ? 'bg-slate-200 text-slate-900 font-bold'
-                      : 'bg-slate-900 text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {c.name}
-                </button>
-              ))}
-            </div>
+      {tab === 'products' ? <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/80"><table className="w-full min-w-[700px] text-left text-sm"><thead className="border-b border-slate-800 bg-slate-950/70 text-[11px] uppercase tracking-wide text-slate-400"><tr><th className="px-5 py-4">Product</th><th className="px-5 py-4">Category</th><th className="px-5 py-4">Price</th><th className="px-5 py-4">Stock</th><th className="px-5 py-4">Status</th><th className="px-5 py-4 text-right">Manage</th></tr></thead><tbody className="divide-y divide-slate-800">{busy ? <tr><td colSpan={6} className="px-5 py-12 text-center text-slate-400">Loading catalog…</td></tr> : filteredProducts.length ? filteredProducts.map((listing) => { const item = listing.itemId || {}; return <tr key={listing._id} className="hover:bg-slate-800/40"><td className="px-5 py-4"><div className="flex items-center gap-3">{item.media?.[0]?.url ? <img src={item.media[0].url} alt="" className="size-11 rounded-lg object-cover" /> : <div className="grid size-11 place-items-center rounded-lg bg-slate-800"><Layers size={17} /></div>}<div><p className="font-bold text-white">{item.name}</p><p className="mt-0.5 text-xs text-slate-500">{item.attributes?.barcode || item.slug}</p></div></div></td><td className="px-5 py-4 text-slate-300">{item.categoryId?.name || 'Uncategorized'}</td><td className="px-5 py-4 font-bold text-emerald-400">{formatRupees(paiseToRupees(listing.pricePaise))}</td><td className="px-5 py-4 text-slate-300">{listing.stock?.available ?? '—'}</td><td className="px-5 py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${listing.isAvailable && item.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>{listing.isAvailable && item.status === 'active' ? 'Live' : item.status === 'archived' ? 'Archived' : 'Hidden'}</span></td><td className="px-5 py-4"><div className="flex justify-end gap-1"><button onClick={() => openProduct(listing)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white" title="Edit"><Edit2 size={15} /></button><button onClick={() => deleteProduct(listing)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-800 hover:text-rose-400" title="Archive"><Trash2 size={15} /></button></div></td></tr>}) : <tr><td colSpan={6} className="px-5 py-12 text-center text-slate-500">No products yet. Add your first marketplace product.</td></tr>}</tbody></table></div> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{busy ? <p className="text-slate-400">Loading categories…</p> : categories.length ? categories.map((category) => <article key={category._id} className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-4">{category.image || category.iconUrl ? <img src={category.image || category.iconUrl} alt="" className="size-12 rounded-xl object-cover" /> : <div className="grid size-12 place-items-center rounded-xl bg-indigo-500/10 text-indigo-300"><Tag size={18} /></div>}<div className="min-w-0 flex-1"><p className="truncate font-bold text-white">{category.name}</p><p className="mt-0.5 text-xs text-slate-500">{category.slug} · {category.isActive === false ? 'Hidden' : 'Visible'}</p></div><button onClick={() => openCategory(category)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white" title="Edit"><Edit2 size={15} /></button><button onClick={() => deleteCategory(category)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-800 hover:text-rose-400" title="Delete"><Trash2 size={15} /></button></article>) : <p className="text-sm text-slate-400">Create categories such as Electronics, Accessories, and Watches.</p>}</div>}
 
-            <div className="relative w-full sm:w-64">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
-              />
-            </div>
-          </div>
+      {productModal ? <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/80 p-4"><form onSubmit={saveProduct} className="my-6 max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6"><div className="flex items-center justify-between"><div><h2 className="text-lg font-bold text-white">{editingProduct ? 'Edit product' : 'Add marketplace product'}</h2><p className="text-xs text-slate-400">Prices are entered in rupees; storefront amounts use backend paise.</p></div><button type="button" onClick={() => setProductModal(false)} className="text-slate-400 hover:text-white"><X size={18} /></button></div><div className="grid gap-3 sm:grid-cols-2"><label><span className={labelClass}>Product name *</span><input required value={productForm.name} onChange={(event) => setProductForm({ ...productForm, name: event.target.value })} className={inputClass} /></label><label><span className={labelClass}>Category *</span><select required value={productForm.categoryId} onChange={(event) => setProductForm({ ...productForm, categoryId: event.target.value })} className={inputClass}><option value="">Choose category</option>{categories.filter((category) => category.isActive !== false).map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}</select></label><label><span className={labelClass}>Price (₹) *</span><input required min="0" step="0.01" type="number" value={productForm.price} onChange={(event) => setProductForm({ ...productForm, price: event.target.value })} className={inputClass} /></label><label><span className={labelClass}>MRP (₹)</span><input min="0" step="0.01" type="number" value={productForm.mrp} onChange={(event) => setProductForm({ ...productForm, mrp: event.target.value })} className={inputClass} /></label><label><span className={labelClass}>Stock quantity</span><input min="0" type="number" value={productForm.stock} onChange={(event) => setProductForm({ ...productForm, stock: event.target.value })} className={inputClass} /></label><label><span className={labelClass}>SKU / model number</span><input value={productForm.sku} onChange={(event) => setProductForm({ ...productForm, sku: event.target.value })} className={inputClass} /></label><label><span className={labelClass}>Unit</span><input value={productForm.unit} onChange={(event) => setProductForm({ ...productForm, unit: event.target.value })} className={inputClass} /></label><label><span className={labelClass}>GST (%)</span><input min="0" max="100" type="number" value={productForm.gstPercent || 18} onChange={(event) => setProductForm({ ...productForm, gstPercent: event.target.value })} className={inputClass} /></label><label className="sm:col-span-2"><span className={labelClass}>Image URL</span><input value={productForm.image} onChange={(event) => setProductForm({ ...productForm, image: event.target.value })} className={inputClass} placeholder="https://…" /></label><label className="sm:col-span-2"><span className={labelClass}>Description</span><textarea rows={3} value={productForm.description} onChange={(event) => setProductForm({ ...productForm, description: event.target.value })} className={inputClass} /></label><label className="sm:col-span-2"><span className={labelClass}>Search tags (comma separated)</span><input value={productForm.tags} onChange={(event) => setProductForm({ ...productForm, tags: event.target.value })} className={inputClass} placeholder="wireless, bluetooth, black" /></label><label className="sm:col-span-2 flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={productForm.isActive} onChange={(event) => setProductForm({ ...productForm, isActive: event.target.checked })} /> Visible in the storefront</label></div><div className="flex justify-end gap-2"><button type="button" onClick={() => setProductModal(false)} className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300">Cancel</button><button disabled={saving} className="rounded-xl bg-indigo-500 px-5 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? 'Saving…' : 'Save product'}</button></div></form></div> : null}
 
-          {/* Products Table */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 overflow-hidden shadow-xl">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950/70 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-800">
-                <tr>
-                  <th className="px-5 py-3.5">Product Name</th>
-                  <th className="px-5 py-3.5">Category</th>
-                  <th className="px-5 py-3.5">Price</th>
-                  <th className="px-5 py-3.5">Stock Status</th>
-                  <th className="px-5 py-3.5 text-right">Stock Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/80">
-                {paginatedProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center text-slate-500 text-sm">
-                      No products found. Products will appear here once added.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedProducts.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-800/40 transition">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div>
-                            <span className="font-bold text-white text-sm">{item.name}</span>
-                            <p className="text-[10px] font-mono text-slate-500">{item.id}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 text-[11px] font-medium">
-                          {item.category}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 font-bold font-mono text-emerald-400">
-                        {formatRupees(item.price)}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            item.inStock
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : 'bg-rose-500/10 text-rose-400'
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              item.inStock ? 'bg-emerald-400' : 'bg-rose-400'
-                            }`}
-                          />
-                          {item.inStock ? 'In Stock' : 'Out of Stock'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={() => toggleItemStock(item.id)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                            item.inStock
-                              ? 'bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 border border-rose-500/30'
-                              : 'bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 border border-emerald-500/30'
-                          }`}
-                        >
-                          {item.inStock ? 'Mark Out-of-Stock' : 'Restock'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <Pagination
-            currentPage={page}
-            totalItems={filteredProducts.length}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-          />
-        </div>
-      )}
-
-      {activeTab === 'CATEGORIES' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-white text-base">Product Categories</h3>
-              <p className="text-xs text-slate-400">Manage categories shown to customers in the app and website</p>
-            </div>
-            <button
-              onClick={handleOpenAddCat}
-              className="px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-1.5 transition cursor-pointer"
-            >
-              <Plus size={15} />
-              <span>Add Category</span>
-            </button>
-          </div>
-
-          {/* Categories Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {categories.length === 0 ? (
-              <div className="col-span-3 py-12 text-center text-slate-500 text-sm">
-                No categories yet. Click "Add Category" to create one.
-              </div>
-            ) : (
-              categories.map((cat, idx) => (
-                <div
-                  key={cat.id}
-                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3 shadow-lg hover:border-slate-700 transition"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    {cat.image ? (
-                      <img
-                        src={cat.image}
-                        alt={cat.name}
-                        className="w-11 h-11 rounded-xl object-cover bg-slate-800 shrink-0 border border-slate-700"
-                      />
-                    ) : (
-                      <div className="w-11 h-11 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">
-                        <Tag size={18} />
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[10px] text-slate-500">#{cat.order || idx + 1}</span>
-                        <h4 className="font-bold text-white text-sm truncate">{cat.name}</h4>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-0.5">{cat.itemCount || 0} products</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        cat.active !== false
-                          ? 'bg-emerald-500/10 text-emerald-400'
-                          : 'bg-rose-500/10 text-rose-400'
-                      }`}
-                    >
-                      {cat.active !== false ? 'Active' : 'Hidden'}
-                    </span>
-                    <button
-                      onClick={() => handleOpenEditCat(cat)}
-                      className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                      title="Edit Category"
-                    >
-                      <Edit2 size={13} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                      className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
-                      title="Delete Category"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Add / Edit Category Modal */}
-      {isCatModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-white text-base">
-                {editingCat ? 'Edit Category' : 'Create Category'}
-              </h3>
-              <button
-                onClick={() => setIsCatModalOpen(false)}
-                className="text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveCategory} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Category Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Electronics, Fashion, Home & Kitchen"
-                  value={catForm.name}
-                  onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Display Sort Order</label>
-                <input
-                  type="number"
-                  value={catForm.order}
-                  onChange={(e) => setCatForm({ ...catForm, order: Number(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block font-semibold text-slate-300">Category Image URL</label>
-                <input
-                  type="text"
-                  placeholder="https://images.pexels.com/..."
-                  value={catForm.image}
-                  onChange={(e) => setCatForm({ ...catForm, image: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-indigo-500"
-                />
-
-                <div className="pt-1">
-                  <span className="text-[10px] text-slate-400 font-semibold">Quick Presets:</span>
-                  <div className="flex items-center gap-1.5 flex-wrap mt-1">
-                    {PRESET_IMAGES.map((p) => (
-                      <button
-                        key={p.name}
-                        type="button"
-                        onClick={() => setCatForm({ ...catForm, image: p.url })}
-                        className={`text-[10px] px-2 py-0.5 rounded-lg border transition cursor-pointer ${
-                          catForm.image === p.url
-                            ? 'bg-indigo-500 text-white border-indigo-500'
-                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
-                        }`}
-                      >
-                        {p.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {catForm.image && (
-                <div className="flex items-center gap-3 p-2 bg-slate-950 rounded-xl border border-slate-800">
-                  <img src={catForm.image} alt="Preview" className="w-12 h-12 rounded-lg object-cover" onError={(e) => e.target.style.display = 'none'} />
-                  <span className="text-slate-400 text-[11px]">Image preview</span>
-                </div>
-              )}
-
-              <div className="pt-1">
-                <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={catForm.isActive}
-                    onChange={(e) => setCatForm({ ...catForm, isActive: e.target.checked })}
-                    className="w-4 h-4 rounded text-indigo-500 bg-slate-950 border-slate-800"
-                  />
-                  <span>Visible to Customers</span>
-                </label>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCatModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-500/20 cursor-pointer"
-                >
-                  {editingCat ? 'Update Category' : 'Create Category'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {categoryModal ? <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4"><form onSubmit={saveCategory} className="w-full max-w-md space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-6"><div className="flex items-center justify-between"><h2 className="font-bold text-white">{editingCategory ? 'Edit category' : 'Add category'}</h2><button type="button" onClick={() => setCategoryModal(false)} className="text-slate-400 hover:text-white"><X size={18} /></button></div><label className="block"><span className={labelClass}>Name *</span><input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} className={inputClass} placeholder="Electronics, Accessories, Watches" /></label><label className="block"><span className={labelClass}>Image URL</span><input value={categoryForm.image} onChange={(event) => setCategoryForm({ ...categoryForm, image: event.target.value })} className={inputClass} /></label><label className="block"><span className={labelClass}>Description</span><textarea rows={2} value={categoryForm.description} onChange={(event) => setCategoryForm({ ...categoryForm, description: event.target.value })} className={inputClass} /></label><label className="block"><span className={labelClass}>Display order</span><input type="number" value={categoryForm.sortOrder} onChange={(event) => setCategoryForm({ ...categoryForm, sortOrder: event.target.value })} className={inputClass} /></label><label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={categoryForm.isActive} onChange={(event) => setCategoryForm({ ...categoryForm, isActive: event.target.checked })} /> Visible in the storefront</label><div className="flex justify-end gap-2"><button type="button" onClick={() => setCategoryModal(false)} className="rounded-xl bg-slate-800 px-4 py-2 text-sm text-slate-300">Cancel</button><button disabled={saving} className="rounded-xl bg-indigo-500 px-5 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? 'Saving…' : 'Save category'}</button></div></form></div> : null}
     </div>
-  );
-};
+  )
+}

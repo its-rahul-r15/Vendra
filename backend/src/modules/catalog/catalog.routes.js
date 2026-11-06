@@ -12,6 +12,32 @@ const router = Router();
 router.get('/categories', (req, res) => controller.getCategories(req, res));
 router.get('/categories/tree', (req, res) => controller.getCategoriesTree(req, res));
 router.get('/search', (req, res) => controller.search(req, res));
+router.get('/products/:listingId', (req, res) => controller.getListing(req, res));
+
+router.get(
+  '/admin/products',
+  authenticate,
+  requirePermission(PERMISSIONS.CATALOG_READ),
+  (req, res) => controller.listCommerceProducts(req, res)
+);
+router.post(
+  '/admin/products',
+  authenticate,
+  requirePermission(PERMISSIONS.CATALOG_WRITE),
+  (req, res) => controller.createCommerceProduct(req, res)
+);
+router.patch(
+  '/admin/products/:listingId',
+  authenticate,
+  requirePermission(PERMISSIONS.CATALOG_WRITE),
+  (req, res) => controller.updateCommerceProduct(req, res)
+);
+router.delete(
+  '/admin/products/:listingId',
+  authenticate,
+  requirePermission(PERMISSIONS.CATALOG_WRITE),
+  (req, res) => controller.deleteCommerceProduct(req, res)
+);
 
 // Admin & Merchant write endpoints
 router.post(

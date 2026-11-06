@@ -11,6 +11,7 @@
     "test:integration": "jest tests/integration --runInBand --forceExit",
     "test:coverage": "jest --coverage --runInBand --forceExit",
     "seed:nearby-restaurants": "node scripts/seedNearbyRestaurants.js",
+    "seed:commerce-categories": "node scripts/seedCommerceCategories.js",
     "lint": "eslint src --ext .js",
     "lint:fix": "eslint src --ext .js --fix"
   },

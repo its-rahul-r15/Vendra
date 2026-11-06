@@ -107,7 +107,7 @@ async function sendOtp(phone) {
   if (isNewUser) {
     // Auto-register new user with phone only; name will be set in onboarding
     user = await User.create({
-      name: 'Ftafat User',
+      name: 'Vendra User',
       phone,
       role: ROLES.CUSTOMER,
       isVerified: false,
@@ -181,32 +181,30 @@ async function logout(userId) {
 const { verifyFirebaseToken } = require('../../integrations/firebase.client');
 
 async function loginWithGoogle(payload = {}) {
-  const { idToken, email, name, avatar, googleId } = payload;
-
-  let verifiedEmail = email;
-  let verifiedName = name;
-  let verifiedAvatar = avatar;
-  let verifiedGoogleId = googleId;
-
-  if (idToken) {
-    try {
-      const decoded = await verifyFirebaseToken(idToken);
-      if (decoded) {
-        verifiedEmail = decoded.email || verifiedEmail;
-        verifiedName = decoded.name || verifiedName;
-        verifiedAvatar = decoded.picture || verifiedAvatar;
-        verifiedGoogleId = decoded.uid || decoded.sub || verifiedGoogleId;
-      }
-    } catch (err) {
-      // If token verify fails but email/googleId is passed in dev
-      if (!verifiedEmail && !verifiedGoogleId) {
-        throw new UnauthorizedError('Invalid Google authentication token', ERROR_CODES.TOKEN_INVALID);
-      }
-    }
+  const { idToken } = payload;
+  if (!idToken) {
+    throw new UnauthorizedError('Google authentication token is required', ERROR_CODES.TOKEN_INVALID);
   }
 
-  if (!verifiedEmail && !verifiedGoogleId) {
-    throw new BusinessError('Google account email or ID is required', ERROR_CODES.INVALID_CREDENTIALS);
+  let decoded;
+  try {
+    decoded = await verifyFirebaseToken(idToken);
+  } catch (error) {
+    logger.warn('[Auth] Firebase Google token verification failed', { error: error.message });
+    throw new UnauthorizedError('Invalid Firebase authentication token', ERROR_CODES.TOKEN_INVALID);
+  }
+
+  if (decoded.firebase?.sign_in_provider !== 'google.com' || decoded.email_verified !== true) {
+    throw new UnauthorizedError('A verified Google sign-in is required', ERROR_CODES.TOKEN_INVALID);
+  }
+
+  const verifiedEmail = decoded.email;
+  const verifiedName = decoded.name;
+  const verifiedAvatar = decoded.picture || decoded.firebase?.identities?.['google.com']?.photoURL;
+  const verifiedGoogleId = decoded.firebase?.identities?.['google.com']?.[0] || decoded.uid;
+
+  if (!verifiedEmail || !verifiedGoogleId) {
+    throw new UnauthorizedError('Google account email could not be verified', ERROR_CODES.TOKEN_INVALID);
   }
 
   const queryOr = [];
@@ -217,7 +215,7 @@ async function loginWithGoogle(payload = {}) {
 
   if (!user) {
     user = await User.create({
-      name: verifiedName || (verifiedEmail ? verifiedEmail.split('@')[0] : 'Ftafat User'),
+      name: verifiedName || (verifiedEmail ? verifiedEmail.split('@')[0] : 'Vendra User'),
       email: verifiedEmail ? verifiedEmail.toLowerCase() : undefined,
       avatar: verifiedAvatar,
       googleId: verifiedGoogleId,

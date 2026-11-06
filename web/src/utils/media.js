@@ -3,7 +3,7 @@ const PLACEHOLDER =
   encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400">
       <rect fill="#1a1a1a" width="640" height="400"/>
-      <text x="50%" y="50%" fill="#666" font-family="sans-serif" font-size="18" text-anchor="middle" dy=".3em">Ftafat</text>
+      <text x="50%" y="50%" fill="#666" font-family="sans-serif" font-size="18" text-anchor="middle" dy=".3em">Shop</text>
     </svg>`,
   )
 
@@ -24,5 +24,5 @@ export function restaurantCover(restaurant) {
 }
 
 export function itemImage(item) {
-  return resolveImage(item?.image || item?.images?.[0] || item?.photo)
+  return resolveImage(item?.image || item?.images?.[0] || item?.photo || item?.thumbnail)
 }

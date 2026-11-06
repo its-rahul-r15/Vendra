@@ -1,6 +1,8 @@
 export { api, unwrap, getAccessToken, saveTokens, clearTokens } from './client'
 export { authApi } from './auth'
 export { feedApi } from './feed'
+export { catalogApi } from './catalog'
+export { checkoutApi } from './checkout'
 export { restaurantsApi } from './restaurants'
 export { searchApi } from './search'
 export { cartApi } from './cart'

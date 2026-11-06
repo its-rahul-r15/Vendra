@@ -67,6 +67,7 @@ class SettingsService {
 
     const foodStatus = await this.isVerticalAvailable(VERTICALS.FOOD);
     const groceryStatus = await this.isVerticalAvailable(VERTICALS.GROCERY);
+    const commerceStatus = await this.isVerticalAvailable(VERTICALS.COMMERCE);
 
     const payload = {
       verticals: {
@@ -79,6 +80,11 @@ class SettingsService {
           enabled: groceryStatus.available,
           mode: groceryStatus.mode,
           message: groceryStatus.message,
+        },
+        [VERTICALS.COMMERCE]: {
+          enabled: commerceStatus.available,
+          mode: commerceStatus.mode,
+          message: commerceStatus.message,
         },
       },
       supportPhone: '+91 99999 99999',

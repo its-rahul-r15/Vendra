@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ordersApi } from '@/api'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
-import { formatINR } from '@/utils/money'
+import { formatINRFromPaise } from '@/utils/money'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
@@ -45,7 +45,7 @@ export function OrdersPage() {
       <EmptyState
         title="No orders yet"
         description="Your past and active orders will show up here."
-        actionLabel="Order now"
+        actionLabel="Shop groceries"
         onAction={() => (window.location.href = '/')}
       />
     )
@@ -69,7 +69,7 @@ export function OrdersPage() {
                   <p className="font-bold text-ink">
                     {order.restaurant?.name ||
                       order.restaurantName ||
-                      'Restaurant order'}
+                      (order.vertical === 'commerce' ? 'Vendra order' : 'Order')}
                   </p>
                   <p className="mt-1 text-sm text-muted">
                     {new Date(order.createdAt || Date.now()).toLocaleString('en-IN')}
@@ -83,7 +83,7 @@ export function OrdersPage() {
                   {(order.items || []).length === 1 ? '' : 's'}
                 </span>
                 <span className="font-bold">
-                  {formatINR(
+                  {formatINRFromPaise(
                     order.totalAmount ??
                       order.pricing?.totalPaise ??
                       order.grandTotal ??

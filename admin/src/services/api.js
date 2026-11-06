@@ -120,6 +120,40 @@ export const api = {
   },
 
   // Categories & Catalog
+  getCommerceCategories: async (includeInactive = false) => {
+    const res = await apiClient.get('/catalog/categories', {
+      params: { vertical: 'commerce', includeInactive },
+    });
+    return res.data?.data?.categories || [];
+  },
+  createCommerceCategory: async (payload) => {
+    const res = await apiClient.post('/catalog/categories', { ...payload, vertical: 'commerce' });
+    return res.data?.data?.category;
+  },
+  updateCommerceCategory: async (id, payload) => {
+    const res = await apiClient.patch(`/catalog/categories/${id}`, payload);
+    return res.data?.data?.category;
+  },
+  deleteCommerceCategory: async (id) => {
+    const res = await apiClient.delete(`/catalog/categories/${id}`);
+    return res.data?.data;
+  },
+  getCommerceProducts: async (includeUnavailable = true) => {
+    const res = await apiClient.get('/catalog/admin/products', { params: { includeUnavailable } });
+    return res.data?.data?.listings || [];
+  },
+  createCommerceProduct: async (payload) => {
+    const res = await apiClient.post('/catalog/admin/products', payload);
+    return res.data?.data?.listing;
+  },
+  updateCommerceProduct: async (listingId, payload) => {
+    const res = await apiClient.patch(`/catalog/admin/products/${listingId}`, payload);
+    return res.data?.data?.listing;
+  },
+  deleteCommerceProduct: async (listingId) => {
+    const res = await apiClient.delete(`/catalog/admin/products/${listingId}`);
+    return res.data?.data;
+  },
   getCategories: async (onlyActive = false) => {
     const res = await apiClient.get('/admin/categories', { params: { onlyActive } });
     return res.data?.data?.categories || [];

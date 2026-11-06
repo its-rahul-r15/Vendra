@@ -5,8 +5,8 @@ const { formatResponse } = require('../../common/response');
 
 class CatalogController {
   async getCategories(req, res) {
-    const { vertical } = req.query;
-    const categories = await catalogService.getCategories({ vertical });
+    const { vertical, includeInactive } = req.query;
+    const categories = await catalogService.getCategories({ vertical, includeInactive: includeInactive === 'true' });
     return res.json(formatResponse({ categories }));
   }
 
@@ -16,7 +16,7 @@ class CatalogController {
   }
 
   async search(req, res) {
-    const { vertical, q, vendorId, categoryId, page, limit } = req.query;
+    const { vertical, q, vendorId, categoryId, page, limit, sort } = req.query;
     const result = await catalogService.search({
       vertical,
       q,
@@ -24,7 +24,33 @@ class CatalogController {
       categoryId,
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
+      sort,
     });
+    return res.json(formatResponse(result));
+  }
+
+  async getListing(req, res) {
+    const listing = await catalogService.getListing(req.params.listingId);
+    return res.json(formatResponse({ listing }));
+  }
+
+  async listCommerceProducts(req, res) {
+    const listings = await catalogService.listCommerceProducts({ includeUnavailable: req.query.includeUnavailable === 'true' });
+    return res.json(formatResponse({ listings }));
+  }
+
+  async createCommerceProduct(req, res) {
+    const listing = await catalogService.createCommerceProduct(req.body, req.user);
+    return res.status(201).json(formatResponse({ listing }));
+  }
+
+  async updateCommerceProduct(req, res) {
+    const listing = await catalogService.updateCommerceProduct(req.params.listingId, req.body, req.user);
+    return res.json(formatResponse({ listing }));
+  }
+
+  async deleteCommerceProduct(req, res) {
+    const result = await catalogService.deleteCommerceProduct(req.params.listingId, req.user);
     return res.json(formatResponse(result));
   }
 

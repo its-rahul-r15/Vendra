@@ -1,6 +1,8 @@
-# Ftafat Web (Customer)
+# Vendra Web (Customer)
 
-Production customer website for Ftafat food delivery. Talks to the backend under `/api/v1` as documented in `../WEBSITE_API_REFERENCE.md`.
+Customer ecommerce storefront for electronics, watches, accessories and related categories. Vendra reads products and categories from the commerce catalog API and uses backend checkout, accounts, addresses, and orders under `/api/v1` as documented in `../WEBSITE_API_REFERENCE.md`. Product cards are rendered only from backend catalog responses; there are no built-in/demo products.
+
+Google login uses Firebase Authentication. Enable the Google provider in Firebase Console and configure the Firebase Web app values from `.env.example` in `web/.env`. The backend verifies Firebase ID tokens with its Firebase Admin service-account credentials; never put those private credentials in the web app.
 
 ## Stack
 
@@ -15,7 +17,7 @@ Production customer website for Ftafat food delivery. Talks to the backend under
 ```
 src/
   api/           HTTP client + domain APIs
-  components/    UI, layout, restaurant widgets
+  components/    UI, layout, commerce product cards
   hooks/         Auth guards, shared hooks
   layouts/       Shell layouts
   lib/           App config
@@ -46,9 +48,9 @@ Default API: `http://localhost:3000/api/v1`
 
 ## Customer flows covered
 
-1. Bootstrap / home feed + nearby restaurants
-2. Search restaurants & dishes
-3. Restaurant menu → cart
+1. Commerce categories and products from the backend catalog
+2. Product search, filters, product detail, and basket controls
+3. Persistent cart and checkout using marketplace order payloads
 4. OTP login
 5. Checkout (address, COD/ONLINE, coupon)
 6. Orders list + detail + cancel

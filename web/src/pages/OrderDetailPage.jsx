@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ordersApi } from '@/api'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { useUiStore } from '@/stores/ui.store'
-import { formatINR } from '@/utils/money'
+import { formatINRFromPaise } from '@/utils/money'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -71,7 +71,7 @@ export function OrderDetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="font-display text-4xl tracking-wide">
-              {order.restaurant?.name || 'Order'}
+              {order.restaurant?.name || (order.vertical === 'commerce' ? 'Vendra order' : 'Order')}
             </h1>
             <p className="mt-1 text-sm text-muted">#{String(order._id || id).slice(-8)}</p>
           </div>
@@ -85,7 +85,7 @@ export function OrderDetailPage() {
                 {item.quantity}× {item.name || item.menuItem?.name || 'Item'}
               </span>
               <span className="text-muted">
-                {formatINR((item.price || 0) * (item.quantity || 1))}
+                {formatINRFromPaise((item.price || 0) * (item.quantity || 1))}
               </span>
             </div>
           ))}
@@ -94,7 +94,7 @@ export function OrderDetailPage() {
         <div className="mt-4 flex justify-between border-t border-line pt-4 text-base font-bold">
           <span>Total</span>
           <span>
-            {formatINR(
+            {formatINRFromPaise(
               order.totalAmount ?? order.pricing?.totalPaise ?? order.grandTotal ?? 0,
             )}
           </span>

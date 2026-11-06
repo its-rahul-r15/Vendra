@@ -19,7 +19,7 @@ export const authApi = {
   },
 
   async loginWithGoogle(payload) {
-    // payload: { email, name, avatar, googleId } decoded from Google credential
+    // Send the signed credential so the backend can verify the Google identity.
     const { data } = unwrap(await api.post('/auth/google', payload))
     if (data?.accessToken) saveTokens(data.accessToken, data.refreshToken)
     return data

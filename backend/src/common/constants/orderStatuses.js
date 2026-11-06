@@ -51,6 +51,7 @@ const DELIVERY_STATUS = Object.freeze({
 const VERTICALS = Object.freeze({
   FOOD: 'food',
   GROCERY: 'grocery',
+  COMMERCE: 'commerce',
 });
 
 const VERTICAL_MODES = Object.freeze({
@@ -63,6 +64,7 @@ const VENDOR_TYPES = Object.freeze({
   RESTAURANT: 'restaurant',
   GROCERY_STORE: 'grocery_store',
   DARK_STORE: 'dark_store',
+  RETAIL_STORE: 'retail_store',
 });
 
 const VENDOR_OWNERSHIP = Object.freeze({

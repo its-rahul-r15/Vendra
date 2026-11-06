@@ -1,141 +1,62 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search } from 'lucide-react'
-import { searchApi } from '@/api'
-import { useLocationStore } from '@/stores/location.store'
-import { useUiStore } from '@/stores/ui.store'
-import { RestaurantCard } from '@/components/restaurant/RestaurantCard'
+import { Search, SlidersHorizontal } from 'lucide-react'
+import { catalogApi } from '@/api'
+import { ProductCard } from '@/components/commerce/ProductCard'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { resolveImage } from '@/utils/media'
-import { formatINR } from '@/utils/money'
-import { Link } from 'react-router-dom'
 
 export function SearchPage() {
   const [params, setParams] = useSearchParams()
-  const initial = params.get('q') || ''
-  const [query, setQuery] = useState(initial)
-  const [loading, setLoading] = useState(false)
-  const [restaurants, setRestaurants] = useState([])
-  const [items, setItems] = useState([])
-  const location = useLocationStore((s) => s.location)
-  const vegOnly = useUiStore((s) => s.vegOnly)
+  const [query, setQuery] = useState(params.get('q') || '')
+  const [categories, setCategories] = useState([])
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const categoryId = params.get('categoryId') || ''
+  const sort = params.get('sort') || 'newest'
+
+  useEffect(() => { catalogApi.categories().then(setCategories).catch(() => {}) }, [])
 
   useEffect(() => {
-    const q = query.trim()
-    setParams(q ? { q } : {})
-
-    if (q.length < 2) {
-      setRestaurants([])
-      setItems([])
-      return undefined
-    }
-
-    let cancelled = false
-    const timer = setTimeout(async () => {
+    let active = true
+    const timer = setTimeout(() => {
       setLoading(true)
-      try {
-        const [rest, dish] = await Promise.all([
-          searchApi.restaurants({
-            q,
-            lat: location.lat,
-            lng: location.lng,
-            isVeg: vegOnly || undefined,
-          }),
-          searchApi.items({ q, isVeg: vegOnly || undefined }),
-        ])
-        if (cancelled) return
-        setRestaurants(rest.restaurants)
-        setItems(dish.items)
-      } catch {
-        if (!cancelled) {
-          setRestaurants([])
-          setItems([])
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }, 280)
+      setError('')
+      const next = new URLSearchParams(params)
+      if (query.trim()) next.set('q', query.trim())
+      else next.delete('q')
+      setParams(next, { replace: true })
+      catalogApi.products({ q: query.trim() || undefined, categoryId: categoryId || undefined, sort, limit: 100 })
+        .then(({ products: result }) => { if (active) setProducts(result) })
+        .catch((err) => { if (active) setError(err.message) })
+        .finally(() => { if (active) setLoading(false) })
+    }, 180)
+    return () => { active = false; clearTimeout(timer) }
+  }, [query, categoryId, sort, setParams])
 
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [query, location.lat, location.lng, vegOnly, setParams])
+  function updateParam(key, value) {
+    const next = new URLSearchParams(params)
+    if (value) next.set(key, value)
+    else next.delete(key)
+    setParams(next)
+  }
 
   return (
-    <div className="container-app py-8 animate-rise">
-      <div className="relative mx-auto max-w-2xl">
-        <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" />
-        <input
-          autoFocus
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search biryani, pizza, cafes…"
-          className="h-14 w-full rounded-2xl border border-line bg-surface pl-12 pr-4 text-base outline-none ring-brand/10 transition focus:border-brand focus:ring-4"
-        />
+    <div className="container-app py-7 animate-rise md:py-9">
+      <div className="mb-7 rounded-3xl bg-[#f4f6fb] p-5 md:p-7">
+        <p className="text-xs font-bold uppercase tracking-widest text-brand">Discover something great</p>
+        <h1 className="mt-2 text-3xl font-extrabold text-ink md:text-4xl">Explore the marketplace</h1>
+        <div className="relative mt-5 max-w-2xl"><Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search electronics, watches, accessories…" className="h-14 w-full rounded-xl border border-line bg-white pl-12 pr-4 text-sm outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10" /></div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <Spinner className="size-7" />
-        </div>
-      ) : null}
+      <div className="mb-6 flex flex-wrap items-center gap-2"><span className="mr-1 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-muted"><SlidersHorizontal className="size-3.5" /> Categories</span><button type="button" onClick={() => updateParam('categoryId', '')} className={`rounded-full border px-3.5 py-2 text-xs font-bold ${!categoryId ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-ink-soft'}`}>All products</button>{categories.map((category) => <button key={category._id} type="button" onClick={() => updateParam('categoryId', categoryId === category._id ? '' : category._id)} className={`rounded-full border px-3.5 py-2 text-xs font-bold ${categoryId === category._id ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-ink-soft'}`}>{category.name}</button>)}<select aria-label="Sort products" value={sort} onChange={(event) => updateParam('sort', event.target.value)} className="ml-auto h-10 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-ink"><option value="newest">Recommended</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option></select></div>
 
-      {!loading && query.trim().length >= 2 && !restaurants.length && !items.length ? (
-        <EmptyState
-          title="No matches"
-          description="Try another dish name or restaurant."
-        />
-      ) : null}
-
-      {items.length > 0 ? (
-        <section className="mt-10">
-          <h2 className="font-display text-3xl tracking-wide">Dishes</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <Link
-                key={item._id || item.id}
-                to={
-                  item.restaurantId || item.restaurant?._id
-                    ? `/restaurants/${item.restaurantId || item.restaurant._id}`
-                    : '/search'
-                }
-                className="flex gap-3 rounded-2xl border border-line bg-surface p-3 transition hover:border-brand/30"
-              >
-                <img
-                  src={resolveImage(item.image || item.images?.[0])}
-                  alt=""
-                  className="size-16 rounded-xl object-cover"
-                />
-                <div className="min-w-0">
-                  <p className="truncate font-bold text-ink">{item.name}</p>
-                  <p className="mt-1 text-sm text-muted">
-                    {item.restaurantName || item.restaurant?.name || 'Restaurant'}
-                  </p>
-                  {item.price != null ? (
-                    <p className="mt-1 text-sm font-semibold">{formatINR(item.price)}</p>
-                  ) : null}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {restaurants.length > 0 ? (
-        <section className="mt-10">
-          <h2 className="font-display text-3xl tracking-wide">Restaurants</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {restaurants.map((restaurant) => (
-              <RestaurantCard
-                key={restaurant._id || restaurant.id}
-                restaurant={restaurant}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
+      <div className="mb-4 flex items-end justify-between"><div><h2 className="text-xl font-extrabold text-ink">{query ? `Results for “${query}”` : categoryId ? categories.find((category) => category._id === categoryId)?.name || 'Products' : 'All products'}</h2><p className="mt-1 text-sm text-muted">{products.length} products</p></div></div>
+      {loading ? <div className="flex justify-center py-16"><Spinner className="size-7" /></div> : null}
+      {!loading && error ? <EmptyState title="Couldn't load products" description={error} actionLabel="Try again" onAction={() => window.location.reload()} /> : null}
+      {!loading && !error && !products.length ? <EmptyState title="No products found" description="Try another search or category." actionLabel="Clear filters" onAction={() => { setQuery(''); setParams({}) }} /> : null}
+      {!loading && products.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{products.map((product) => <ProductCard key={product._id} product={product} />)}</div> : null}
     </div>
   )
 }
