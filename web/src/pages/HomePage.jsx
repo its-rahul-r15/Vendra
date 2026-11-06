@@ -1,70 +1,367 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, Headphones, Search, ShieldCheck, Sparkles, Truck } from 'lucide-react'
-import { catalogApi } from '@/api'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  ArrowRight,
+  ShieldCheck,
+  Sparkles,
+  Truck,
+  Store,
+  Layers,
+  Search,
+  Star,
+  CheckCircle2,
+  Clock3,
+} from 'lucide-react'
+import { catalogApi, feedApi, restaurantsApi, vendorsApi } from '@/api'
 import { ProductCard } from '@/components/commerce/ProductCard'
+import { RestaurantCard } from '@/components/restaurant/RestaurantCard'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Button } from '@/components/ui/Button'
 import { resolveImage } from '@/utils/media'
 
 export function HomePage() {
+  const navigate = useNavigate()
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
+  const [shops, setShops] = useState([])
+  const [banners, setBanners] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let active = true
-    Promise.all([catalogApi.categories(), catalogApi.products({ limit: 100, sort: 'newest' })])
-      .then(([categoryList, result]) => {
+
+    async function loadData() {
+      setLoading(true)
+      try {
+        const [categoryList, productRes, nearbyRes, bannerList] = await Promise.allSettled([
+          catalogApi.categories(),
+          catalogApi.products({ limit: 12, sort: 'newest' }),
+          restaurantsApi.nearby({ lat: 28.6139, lng: 77.209, radius: 15, limit: 6 }),
+          feedApi.banners('ALL'),
+        ])
+
         if (!active) return
-        setCategories(categoryList)
-        setProducts(result.products)
-      })
-      .catch((err) => { if (active) setError(err.message) })
-      .finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
+
+        if (categoryList.status === 'fulfilled') {
+          setCategories(categoryList.value || [])
+        }
+        if (productRes.status === 'fulfilled') {
+          setProducts(productRes.value?.products || [])
+        }
+        if (nearbyRes.status === 'fulfilled') {
+          setShops(nearbyRes.value?.restaurants || [])
+        }
+        if (bannerList.status === 'fulfilled') {
+          setBanners(bannerList.value || [])
+        }
+      } catch (err) {
+        if (active) setError(err.message)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    loadData()
+    return () => {
+      active = false
+    }
   }, [])
 
-  if (loading) return <div className="container-app flex justify-center py-24"><Spinner className="size-8" /></div>
-  if (error) return <EmptyState title="The store is unavailable" description={error} actionLabel="Try again" onAction={() => window.location.reload()} />
+  function handleSearchSubmit(e) {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    } else {
+      navigate('/search')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="container-app flex min-h-[50vh] items-center justify-center py-24">
+        <Spinner className="size-8 text-[#0a0a0a]" />
+      </div>
+    )
+  }
 
   return (
-    <div className="animate-rise">
-      <section className="overflow-hidden bg-[#f4f6fb]">
-        <div className="container-app grid min-h-[390px] items-center gap-8 py-10 md:grid-cols-[1fr_0.9fr] md:py-14">
-          <div className="max-w-xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-brand shadow-sm"><Sparkles className="size-3.5" /> THE EVERYDAY MARKETPLACE</span>
-            <h1 className="mt-5 text-4xl font-extrabold leading-[1.03] tracking-tight text-ink md:text-6xl">The things you love.<br /><span className="text-brand">All in one place.</span></h1>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-ink-soft">Discover electronics, watches, accessories and more from trusted sellers.</p>
-            <Link to="/search" className="mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-lg shadow-brand/20 transition hover:bg-brand-dark">Explore products <ArrowRight className="size-4" /></Link>
-          </div>
-          <div className="relative mx-auto grid w-full max-w-lg grid-cols-2 gap-3">
-            <div className="col-span-2 flex aspect-[2.2/1] items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-200 via-blue-100 to-sky-100 text-7xl shadow-inner" aria-hidden="true">📱</div>
-            <div className="flex aspect-square items-center justify-center rounded-3xl bg-gradient-to-br from-violet-100 to-pink-100 text-6xl shadow-inner" aria-hidden="true">⌚</div>
-            <div className="flex aspect-square items-center justify-center rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 text-6xl shadow-inner" aria-hidden="true">🎧</div>
+    <div className="animate-rise space-y-16 pb-20">
+      {/* 1. Super Premium Hero Section */}
+      <section className="border-b border-[#e7e5df] bg-[#ffffff] pt-12 pb-16 md:pt-20 md:pb-24">
+        <div className="container-app">
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#e7e5df] bg-[#faf9f5] px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#121212]">
+              <Sparkles className="size-3.5 text-[#a37237]" />
+              The Multi-Vendor Marketplace
+            </span>
+
+            <h1 className="mt-6 text-4xl font-black tracking-tight text-[#0a0a0a] sm:text-6xl md:leading-[1.1]">
+              Independent Shops.<br />
+              <span className="font-serif italic font-normal text-[#575550]">
+                Every Category, Unified.
+              </span>
+            </h1>
+
+            <p className="mx-auto mt-6 max-w-xl text-lg text-[#575550] leading-relaxed">
+              Explore curated electronics, apparel, living, and gourmet provisions from verified independent merchants.
+            </p>
+
+            {/* Quick Hero Search Input */}
+            <form onSubmit={handleSearchSubmit} className="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-2xl border border-[#121212] bg-[#ffffff] p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+              <div className="flex flex-1 items-center gap-3 pl-3">
+                <Search className="size-5 text-[#737069]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="What are you shopping for today?"
+                  className="w-full bg-transparent text-base text-[#121212] outline-none placeholder:text-[#99958d]"
+                />
+              </div>
+              <Button type="submit" variant="primary" className="h-11 px-6 text-sm font-semibold">
+                Explore
+              </Button>
+            </form>
+
+            {/* Quick Navigation Chips */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm text-[#737069]">
+              <span className="font-medium text-[#121212]">Popular:</span>
+              <Link to="/categories" className="rounded-full border border-[#e7e5df] bg-[#faf9f5] px-3 py-1 hover:border-[#121212] hover:text-[#121212]">
+                Category-Wise List
+              </Link>
+              <Link to="/shops" className="rounded-full border border-[#e7e5df] bg-[#faf9f5] px-3 py-1 hover:border-[#121212] hover:text-[#121212]">
+                Verified Shops
+              </Link>
+              <Link to="/search?filter=deals" className="rounded-full border border-[#e7e5df] bg-[#faf9f5] px-3 py-1 hover:border-[#121212] hover:text-[#121212]">
+                Steal Deals
+              </Link>
+              <Link to="/vendor/register" className="rounded-full border border-[#0a0a0a] bg-[#0a0a0a] px-3 py-1 font-semibold text-white hover:bg-[#262626]">
+                Sell on Vendra
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="container-app space-y-10 py-8 md:py-10">
-        <section className="grid grid-cols-2 gap-3 rounded-2xl border border-line bg-surface p-4 md:grid-cols-4 md:p-5">
-          <div className="flex items-center justify-center gap-2 text-xs font-semibold text-ink-soft md:text-sm"><Truck className="size-4 text-brand" /> Reliable delivery</div>
-          <div className="flex items-center justify-center gap-2 text-xs font-semibold text-ink-soft md:text-sm"><BadgeCheck className="size-4 text-brand" /> Trusted products</div>
-          <div className="flex items-center justify-center gap-2 text-xs font-semibold text-ink-soft md:text-sm"><ShieldCheck className="size-4 text-brand" /> Secure checkout</div>
-          <div className="flex items-center justify-center gap-2 text-xs font-semibold text-ink-soft md:text-sm"><Headphones className="size-4 text-brand" /> Helpful support</div>
-        </section>
+      {/* 2. Platform Value Props */}
+      <section className="container-app">
+        <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#e7e5df] bg-white p-6 md:grid-cols-4 md:p-8">
+          <div className="flex items-start gap-3.5">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#faf9f5] text-[#121212] border border-[#e7e5df]">
+              <Truck className="size-5" />
+            </span>
+            <div>
+              <h4 className="text-base font-bold text-[#121212]">Fast Direct Delivery</h4>
+              <p className="mt-0.5 text-xs text-[#737069]">Dispatched from verified vendors</p>
+            </div>
+          </div>
 
-        <section>
-          <div className="mb-4 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-widest text-brand">Browse the store</p><h2 className="mt-1 text-2xl font-extrabold text-ink md:text-3xl">Shop by category</h2></div><Link to="/search" className="text-sm font-bold text-brand">All products <ArrowRight className="inline size-4" /></Link></div>
-          {categories.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">{categories.slice(0, 12).map((category) => <Link key={category._id} to={`/search?categoryId=${category._id}`} className="group overflow-hidden rounded-2xl border border-line bg-surface transition hover:-translate-y-0.5 hover:shadow-md"><div className="grid aspect-[1.3] place-items-center overflow-hidden bg-paper">{category.image || category.iconUrl ? <img src={resolveImage(category.image || category.iconUrl)} alt="" className="size-full object-cover transition group-hover:scale-105" /> : <span className="text-4xl">{category.name?.toLowerCase().includes('watch') ? '⌚' : category.name?.toLowerCase().includes('access') ? '🎧' : '📱'}</span>}</div><p className="truncate p-3 text-sm font-bold text-ink">{category.name}</p></Link>)}</div> : <p className="rounded-2xl border border-dashed border-line p-8 text-center text-sm text-muted">The store is being set up. Products will appear here soon.</p>}
-        </section>
+          <div className="flex items-start gap-3.5">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#faf9f5] text-[#121212] border border-[#e7e5df]">
+              <Store className="size-5" />
+            </span>
+            <div>
+              <h4 className="text-base font-bold text-[#121212]">Independent Merchants</h4>
+              <p className="mt-0.5 text-xs text-[#737069]">Support certified local businesses</p>
+            </div>
+          </div>
 
-        <section>
-          <div className="mb-4 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-widest text-brand">Handpicked for you</p><h2 className="mt-1 text-2xl font-extrabold text-ink md:text-3xl">Featured products</h2></div><Link to="/search" className="text-sm font-bold text-brand">See all <ArrowRight className="inline size-4" /></Link></div>
-          {products.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{products.slice(0, 10).map((product) => <ProductCard key={product._id} product={product} />)}</div> : <div className="rounded-2xl bg-paper px-6 py-10 text-center"><Search className="mx-auto size-7 text-muted" /><p className="mt-3 text-sm text-muted">New arrivals are on the way.</p></div>}
-        </section>
-      </div>
+          <div className="flex items-start gap-3.5">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#faf9f5] text-[#121212] border border-[#e7e5df]">
+              <ShieldCheck className="size-5" />
+            </span>
+            <div>
+              <h4 className="text-base font-bold text-[#121212]">Guaranteed Quality</h4>
+              <p className="mt-0.5 text-xs text-[#737069]">100% authentic multi-category items</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3.5">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#faf9f5] text-[#121212] border border-[#e7e5df]">
+              <Layers className="size-5" />
+            </span>
+            <div>
+              <h4 className="text-base font-bold text-[#121212]">Unified Checkout</h4>
+              <p className="mt-0.5 text-xs text-[#737069]">Seamless COD & payment security</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Category-Wise Shopping Showcase */}
+      <section className="container-app">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#737069]">
+              Department Catalog
+            </p>
+            <h2 className="mt-1 text-2xl font-black text-[#0a0a0a] sm:text-3xl">
+              Shop by Category
+            </h2>
+          </div>
+          <Link
+            to="/categories"
+            className="flex items-center gap-1.5 text-sm font-semibold text-[#121212] hover:underline"
+          >
+            <span>View All Categories & Lists</span>
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {categories.slice(0, 12).map((cat) => (
+              <Link
+                key={cat._id || cat.id}
+                to={`/categories?categoryId=${cat._id || cat.id}`}
+                className="group warm-card flex flex-col overflow-hidden bg-white p-4 text-center transition hover:-translate-y-0.5"
+              >
+                <div className="mx-auto aspect-square w-full overflow-hidden rounded-xl bg-[#faf9f5] p-3 flex items-center justify-center">
+                  {cat.image || cat.iconUrl ? (
+                    <img
+                      src={resolveImage(cat.image || cat.iconUrl)}
+                      alt={cat.name}
+                      className="size-full object-contain transition group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Layers className="size-8 text-[#121212]" />
+                  )}
+                </div>
+                <h3 className="mt-3 truncate text-sm font-bold text-[#121212] group-hover:text-[#42403c]">
+                  {cat.name}
+                </h3>
+                <span className="mt-0.5 text-xs text-[#737069]">Shop list</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-[#e7e5df] p-10 text-center">
+            <Layers className="mx-auto size-8 text-[#737069]" />
+            <p className="mt-3 text-base text-[#737069]">
+              Categories are ready to browse. Check our product search.
+            </p>
+            <Link to="/search" className="mt-4 inline-block font-semibold text-[#121212] underline">
+              Browse all items
+            </Link>
+          </div>
+        )}
+      </section>
+
+      {/* 4. Shop-Wise Discovery Showcase */}
+      <section className="container-app">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#737069]">
+              Verified Merchants
+            </p>
+            <h2 className="mt-1 text-2xl font-black text-[#0a0a0a] sm:text-3xl">
+              Shop by Store
+            </h2>
+          </div>
+          <Link
+            to="/shops"
+            className="flex items-center gap-1.5 text-sm font-semibold text-[#121212] hover:underline"
+          >
+            <span>Browse All Shops & Merchants</span>
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+
+        {shops.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {shops.slice(0, 6).map((shop) => (
+              <RestaurantCard key={shop._id || shop.id} restaurant={shop} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-[#e7e5df] bg-white p-8 text-center">
+            <Store className="mx-auto size-8 text-[#121212]" />
+            <h3 className="mt-3 text-lg font-bold text-[#121212]">Partner Shops Nearby</h3>
+            <p className="mt-1 text-base text-[#737069]">
+              Discover local storefronts and boutiques delivering directly to your door.
+            </p>
+            <Link to="/shops" className="mt-4 inline-flex items-center gap-1.5 font-semibold text-[#121212] underline">
+              Explore Shop Directory <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        )}
+      </section>
+
+      {/* 5. Featured Marketplace Products */}
+      <section className="container-app">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#737069]">
+              Handpicked Catalog
+            </p>
+            <h2 className="mt-1 text-2xl font-black text-[#0a0a0a] sm:text-3xl">
+              Featured Products
+            </h2>
+          </div>
+          <Link
+            to="/search"
+            className="flex items-center gap-1.5 text-sm font-semibold text-[#121212] hover:underline"
+          >
+            <span>See Full Catalog</span>
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+
+        {products.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {products.slice(0, 8).map((product) => (
+              <ProductCard key={product._id || product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-[#e7e5df] bg-white p-12 text-center">
+            <Search className="mx-auto size-8 text-[#737069]" />
+            <p className="mt-3 text-base text-[#737069]">New arrivals are being added to the catalog.</p>
+            <Link to="/search" className="mt-4 inline-block font-semibold text-[#121212] underline">
+              Search all inventory
+            </Link>
+          </div>
+        )}
+      </section>
+
+      {/* 6. Become a Vendor Call to Action */}
+      <section className="container-app">
+        <div className="relative overflow-hidden rounded-3xl border border-[#121212] bg-[#0a0a0a] p-8 text-white sm:p-12 md:p-16">
+          <div className="relative z-10 max-w-2xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-white">
+              <Store className="size-3.5" /> Seller Partnerships
+            </span>
+            <h2 className="mt-5 text-3xl font-black tracking-tight sm:text-5xl">
+              Grow Your Business on Vendra
+            </h2>
+            <p className="mt-4 text-base text-white/75 sm:text-lg leading-relaxed">
+              Whether you run a boutique, an electronics store, a specialty grocery, or a gourmet eatery, Vendra provides direct access to customers with zero setup complexity.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => navigate('/vendor/register')}
+                className="bg-white text-[#0a0a0a] hover:bg-[#faf9f5]"
+              >
+                Register as a Vendor
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={() => navigate('/vendor/login')}
+                className="text-white hover:bg-white/10"
+              >
+                Vendor Sign in →
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal } from 'lucide-react'
-import { catalogApi } from '@/api'
+import { useSearchParams, Link } from 'react-router-dom'
+import { Search, SlidersHorizontal, Store, Layers, ArrowRight } from 'lucide-react'
+import { catalogApi, restaurantsApi } from '@/api'
 import { ProductCard } from '@/components/commerce/ProductCard'
+import { RestaurantCard } from '@/components/restaurant/RestaurantCard'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
 
@@ -11,29 +12,64 @@ export function SearchPage() {
   const [query, setQuery] = useState(params.get('q') || '')
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
+  const [shops, setShops] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [searchTab, setSearchTab] = useState('products') // 'products' | 'shops'
+
   const categoryId = params.get('categoryId') || ''
   const sort = params.get('sort') || 'newest'
+  const filter = params.get('filter') || ''
 
-  useEffect(() => { catalogApi.categories().then(setCategories).catch(() => {}) }, [])
+  useEffect(() => {
+    catalogApi.categories().then(setCategories).catch(() => {})
+  }, [])
 
   useEffect(() => {
     let active = true
     const timer = setTimeout(() => {
       setLoading(true)
       setError('')
+
       const next = new URLSearchParams(params)
       if (query.trim()) next.set('q', query.trim())
       else next.delete('q')
       setParams(next, { replace: true })
-      catalogApi.products({ q: query.trim() || undefined, categoryId: categoryId || undefined, sort, limit: 100 })
-        .then(({ products: result }) => { if (active) setProducts(result) })
-        .catch((err) => { if (active) setError(err.message) })
-        .finally(() => { if (active) setLoading(false) })
-    }, 180)
-    return () => { active = false; clearTimeout(timer) }
-  }, [query, categoryId, sort, setParams])
+
+      Promise.allSettled([
+        catalogApi.products({
+          q: query.trim() || undefined,
+          categoryId: categoryId || undefined,
+          sort,
+          limit: 60,
+        }),
+        restaurantsApi.list({
+          search: query.trim() || undefined,
+          limit: 20,
+        }),
+      ])
+        .then(([prodRes, shopRes]) => {
+          if (!active) return
+          if (prodRes.status === 'fulfilled') {
+            setProducts(prodRes.value?.products || [])
+          }
+          if (shopRes.status === 'fulfilled') {
+            setShops(shopRes.value?.restaurants || [])
+          }
+        })
+        .catch((err) => {
+          if (active) setError(err.message)
+        })
+        .finally(() => {
+          if (active) setLoading(false)
+        })
+    }, 200)
+
+    return () => {
+      active = false
+      clearTimeout(timer)
+    }
+  }, [query, categoryId, sort, filter, setParams])
 
   function updateParam(key, value) {
     const next = new URLSearchParams(params)
@@ -43,20 +79,152 @@ export function SearchPage() {
   }
 
   return (
-    <div className="container-app py-7 animate-rise md:py-9">
-      <div className="mb-7 rounded-3xl bg-[#f4f6fb] p-5 md:p-7">
-        <p className="text-xs font-bold uppercase tracking-widest text-brand">Discover something great</p>
-        <h1 className="mt-2 text-3xl font-extrabold text-ink md:text-4xl">Explore the marketplace</h1>
-        <div className="relative mt-5 max-w-2xl"><Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search electronics, watches, accessories…" className="h-14 w-full rounded-xl border border-line bg-white pl-12 pr-4 text-sm outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10" /></div>
+    <div className="container-app py-10 animate-rise">
+      {/* Search Header */}
+      <div className="border-b border-[#e7e5df] pb-8">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#737069]">
+          Marketplace Search
+        </span>
+        <h1 className="mt-2 text-3xl font-black text-[#0a0a0a] sm:text-4xl">
+          Search Products & Independent Stores
+        </h1>
+
+        <div className="relative mt-6 max-w-2xl">
+          <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#737069]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search across all categories, brands, foods, and shops…"
+            className="h-13 w-full rounded-2xl border border-[#121212] bg-white pl-12 pr-4 text-base text-[#121212] outline-none shadow-sm transition placeholder:text-[#99958d] focus:ring-2 focus:ring-[#121212]/10"
+          />
+        </div>
+
+        {/* Filters and Tabs */}
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center rounded-xl border border-[#e7e5df] bg-white p-1">
+            <button
+              type="button"
+              onClick={() => setSearchTab('products')}
+              className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
+                searchTab === 'products'
+                  ? 'bg-[#0a0a0a] text-white'
+                  : 'text-[#575550] hover:text-[#0a0a0a]'
+              }`}
+            >
+              Products ({products.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setSearchTab('shops')}
+              className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
+                searchTab === 'shops'
+                  ? 'bg-[#0a0a0a] text-white'
+                  : 'text-[#575550] hover:text-[#0a0a0a]'
+              }`}
+            >
+              Shops & Merchants ({shops.length})
+            </button>
+          </div>
+
+          {searchTab === 'products' ? (
+            <div className="flex items-center gap-3">
+              <select
+                aria-label="Sort products"
+                value={sort}
+                onChange={(e) => updateParam('sort', e.target.value)}
+                className="h-10 rounded-xl border border-[#e7e5df] bg-white px-3 text-sm font-medium text-[#121212] outline-none focus:border-[#0a0a0a]"
+              >
+                <option value="newest">Featured & Newest</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+              </select>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Category Horizontal Filter */}
+        {searchTab === 'products' && categories.length > 0 ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => updateParam('categoryId', '')}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                !categoryId
+                  ? 'bg-[#0a0a0a] text-white'
+                  : 'border border-[#e7e5df] bg-white text-[#42403c] hover:border-[#0a0a0a]'
+              }`}
+            >
+              All Categories
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat._id || cat.id}
+                type="button"
+                onClick={() =>
+                  updateParam('categoryId', categoryId === cat._id ? '' : cat._id)
+                }
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                  categoryId === cat._id
+                    ? 'bg-[#0a0a0a] text-white'
+                    : 'border border-[#e7e5df] bg-white text-[#42403c] hover:border-[#0a0a0a]'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center gap-2"><span className="mr-1 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-muted"><SlidersHorizontal className="size-3.5" /> Categories</span><button type="button" onClick={() => updateParam('categoryId', '')} className={`rounded-full border px-3.5 py-2 text-xs font-bold ${!categoryId ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-ink-soft'}`}>All products</button>{categories.map((category) => <button key={category._id} type="button" onClick={() => updateParam('categoryId', categoryId === category._id ? '' : category._id)} className={`rounded-full border px-3.5 py-2 text-xs font-bold ${categoryId === category._id ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-ink-soft'}`}>{category.name}</button>)}<select aria-label="Sort products" value={sort} onChange={(event) => updateParam('sort', event.target.value)} className="ml-auto h-10 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-ink"><option value="newest">Recommended</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option></select></div>
-
-      <div className="mb-4 flex items-end justify-between"><div><h2 className="text-xl font-extrabold text-ink">{query ? `Results for “${query}”` : categoryId ? categories.find((category) => category._id === categoryId)?.name || 'Products' : 'All products'}</h2><p className="mt-1 text-sm text-muted">{products.length} products</p></div></div>
-      {loading ? <div className="flex justify-center py-16"><Spinner className="size-7" /></div> : null}
-      {!loading && error ? <EmptyState title="Couldn't load products" description={error} actionLabel="Try again" onAction={() => window.location.reload()} /> : null}
-      {!loading && !error && !products.length ? <EmptyState title="No products found" description="Try another search or category." actionLabel="Clear filters" onAction={() => { setQuery(''); setParams({}) }} /> : null}
-      {!loading && products.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{products.map((product) => <ProductCard key={product._id} product={product} />)}</div> : null}
+      {/* Results View */}
+      <div className="mt-8">
+        {loading ? (
+          <div className="flex min-h-[300px] items-center justify-center">
+            <Spinner className="size-8 text-[#0a0a0a]" />
+          </div>
+        ) : error ? (
+          <EmptyState
+            title="Search is currently unavailable"
+            description={error}
+            actionLabel="Try again"
+            onAction={() => window.location.reload()}
+          />
+        ) : searchTab === 'products' ? (
+          products.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {products.map((prod) => (
+                <ProductCard key={prod._id || prod.id} product={prod} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="No products match your search"
+              description="Try adjusting your keywords or browse all categories."
+              actionLabel="Clear search"
+              onAction={() => {
+                setQuery('')
+                setParams({})
+              }}
+            />
+          )
+        ) : shops.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {shops.map((shop) => (
+              <RestaurantCard key={shop._id || shop.id} restaurant={shop} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No shops match your search"
+            description="Try searching for a different locality, restaurant, or store name."
+            actionLabel="Clear search"
+            onAction={() => {
+              setQuery('')
+              setParams({})
+            }}
+          />
+        )}
+      </div>
     </div>
   )
 }

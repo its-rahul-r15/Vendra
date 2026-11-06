@@ -25,4 +25,15 @@ export const ordersApi = {
     const { data } = unwrap(await api.patch(`/orders/${id}/cancel`, body))
     return data?.order
   },
+
+  // Vendor endpoints
+  async getRestaurantOrders(restaurantId, params = {}) {
+    const { data, meta } = unwrap(await api.get(`/orders/restaurant/${restaurantId}`, { params }))
+    return { orders: data?.orders || [], meta }
+  },
+
+  async updateStatus(orderId, status, payload = {}) {
+    const { data } = unwrap(await api.patch(`/orders/${orderId}/status`, { status, ...payload }))
+    return data?.order || data
+  },
 }

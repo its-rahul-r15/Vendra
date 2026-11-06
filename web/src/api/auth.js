@@ -1,6 +1,17 @@
 import { api, unwrap, saveTokens, clearTokens } from './client'
 
 export const authApi = {
+  async register(payload) {
+    const { data } = unwrap(await api.post('/auth/register', payload))
+    return data
+  },
+
+  async login(payload) {
+    const { data } = unwrap(await api.post('/auth/login', payload))
+    if (data?.accessToken) saveTokens(data.accessToken, data.refreshToken)
+    return data
+  },
+
   async sendOtp(phone) {
     const { data } = unwrap(await api.post('/auth/otp/send', { phone }))
     return data
@@ -12,14 +23,7 @@ export const authApi = {
     return data
   },
 
-  async login(payload) {
-    const { data } = unwrap(await api.post('/auth/login', payload))
-    if (data?.accessToken) saveTokens(data.accessToken, data.refreshToken)
-    return data
-  },
-
   async loginWithGoogle(payload) {
-    // Send the signed credential so the backend can verify the Google identity.
     const { data } = unwrap(await api.post('/auth/google', payload))
     if (data?.accessToken) saveTokens(data.accessToken, data.refreshToken)
     return data

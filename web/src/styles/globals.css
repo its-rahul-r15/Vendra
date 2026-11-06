@@ -1,22 +1,34 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Bebas Neue", Impact, sans-serif;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Newsreader", "Playfair Display", Georgia, serif;
 
-  --color-brand: #3159e8;
-  --color-brand-dark: #2344c6;
-  --color-brand-deep: #1d369d;
-  --color-ember: #e99721;
-  --color-ink: #141414;
-  --color-ink-soft: #3a3a3a;
-  --color-muted: #6b6b6b;
-  --color-line: #ebe6df;
-  --color-paper: #f6f1ea;
-  --color-canvas: #f3eee6;
-  --color-surface: #fffdf9;
-  --color-veg: #1f8a4c;
-  --color-nonveg: #c62828;
+  /* Super Premium Minimalist Black & Warm White Palette (Light Mode Only) */
+  --color-brand: #0f0f0f;
+  --color-brand-dark: #000000;
+  --color-brand-deep: #050505;
+
+  /* Pure Onyx & Pitch Black Accents */
+  --color-onyx: #0a0a0a;
+  --color-ink: #121212;
+  --color-ink-soft: #42403c;
+  --color-muted: #737069;
+  --color-subtle: #99958d;
+
+  /* Warm White & Natural Linen Canvas */
+  --color-canvas: #faf9f5;
+  --color-surface: #ffffff;
+  --color-paper: #f4f2ec;
+  --color-paper-light: #f7f6f1;
+  --color-line: #e7e5df;
+  --color-line-dark: #d5d2c9;
+
+  /* Warm Accent & Editorial Highlights */
+  --color-amber-accent: #a37237;
+  --color-veg: #1e7041;
+  --color-nonveg: #b82828;
 }
 
 @layer base {
@@ -28,23 +40,26 @@
 
   html {
     scroll-behavior: smooth;
+    font-size: 16px;
   }
 
   body {
     margin: 0;
     min-height: 100dvh;
     font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
     color: var(--color-ink);
-    background:
-      radial-gradient(1200px 500px at 10% -10%, rgba(49, 89, 232, 0.07), transparent 55%),
-      radial-gradient(900px 420px at 100% 0%, rgba(132, 204, 22, 0.06), transparent 50%),
-      var(--color-canvas);
+    background-color: var(--color-canvas);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
   #root {
     min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
   }
 
   button,
@@ -65,28 +80,69 @@
   }
 
   ::selection {
-    background: rgba(227, 28, 35, 0.18);
+    background: #141414;
+    color: #ffffff;
   }
 }
 
 @layer utilities {
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: 0.04em;
+    letter-spacing: -0.02em;
+  }
+
+  .font-serif {
+    font-family: var(--font-serif);
   }
 
   .container-app {
-    width: min(1180px, calc(100% - 2rem));
+    width: min(1280px, calc(100% - 2.5rem));
     margin-inline: auto;
   }
 
-  .noise-panel {
-    background-color: var(--color-surface);
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  .warm-border {
+    border: 1px solid var(--color-line);
   }
 
-  .brand-gradient {
-    background: linear-gradient(135deg, #2344c6 0%, #5275f0 100%);
+  .warm-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 1rem;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .warm-card:hover {
+    border-color: #cfcbc1;
+    box-shadow: 0 10px 30px -10px rgba(18, 18, 18, 0.06);
+  }
+
+  .luxury-button {
+    background-color: var(--color-onyx);
+    color: #ffffff;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .luxury-button:hover {
+    background-color: #262626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  }
+
+  .luxury-button-outline {
+    background-color: transparent;
+    color: var(--color-ink);
+    border: 1.5px solid var(--color-onyx);
+    font-weight: 500;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .luxury-button-outline:hover {
+    background-color: var(--color-onyx);
+    color: #ffffff;
   }
 
   .hide-scrollbar {
@@ -96,35 +152,19 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
-}
 
-@keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
+  .animate-rise {
+    animation: rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.animate-rise {
-  animation: rise-in 0.45s ease both;
-}
-
-.skeleton {
-  background: linear-gradient(90deg, #ece7df 25%, #f7f2ea 50%, #ece7df 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s linear infinite;
-  border-radius: 12px;
 }

@@ -12,10 +12,10 @@ export function Toaster() {
         <div
           key={toast.id}
           className={cn(
-            'pointer-events-auto rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg animate-rise',
-            toast.type === 'error' && 'bg-nonveg',
-            toast.type === 'success' && 'bg-veg',
-            toast.type === 'info' && 'bg-ink',
+            'pointer-events-auto rounded-xl border px-5 py-3 text-sm font-medium shadow-xl animate-rise',
+            toast.type === 'error' && 'bg-[#b82828] border-[#b82828] text-white',
+            toast.type === 'success' && 'bg-[#0a0a0a] border-[#0a0a0a] text-white',
+            toast.type === 'info' && 'bg-[#0a0a0a] border-[#e7e5df] text-white',
           )}
         >
           {toast.message}

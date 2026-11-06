@@ -5,9 +5,15 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore } from '@/stores/cart.store'
 import { getAccessToken } from '@/api'
 import { HomePage } from '@/pages/HomePage'
+import { CategoriesPage } from '@/pages/CategoriesPage'
+import { ShopsPage } from '@/pages/ShopsPage'
+import { ShopDetailPage } from '@/pages/ShopDetailPage'
 import { ProductPage } from '@/pages/ProductPage'
 import { SearchPage } from '@/pages/SearchPage'
 import { LoginPage } from '@/pages/LoginPage'
+import { VendorRegisterPage } from '@/pages/VendorRegisterPage'
+import { VendorLoginPage } from '@/pages/VendorLoginPage'
+import { VendorDashboardPage } from '@/pages/VendorDashboardPage'
 import { CartPage } from '@/pages/CartPage'
 import { CheckoutPage } from '@/pages/CheckoutPage'
 import { OrdersPage } from '@/pages/OrdersPage'
@@ -16,7 +22,6 @@ import { AccountPage } from '@/pages/AccountPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { Spinner } from '@/components/ui/Spinner'
 
-// Inner component — rendered inside BrowserRouter so hooks like useNavigate work
 function AppRoutes() {
   const bootstrap = useAuthStore((s) => s.bootstrap)
   const bootstrapped = useAuthStore((s) => s.bootstrapped)
@@ -35,8 +40,8 @@ function AppRoutes() {
 
   if (!bootstrapped) {
     return (
-      <div className="flex min-h-dvh items-center justify-center">
-        <Spinner className="size-8" />
+      <div className="flex min-h-dvh items-center justify-center bg-[#faf9f5]">
+        <Spinner className="size-8 text-[#0a0a0a]" />
       </div>
     )
   }
@@ -44,15 +49,30 @@ function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
+        {/* Marketplace Core & Discovery */}
         <Route index element={<HomePage />} />
-        <Route path="search" element={<SearchPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="shops" element={<ShopsPage />} />
+        <Route path="shops/:id" element={<ShopDetailPage />} />
+        <Route path="restaurants/:id" element={<ShopDetailPage />} />
         <Route path="products/:id" element={<ProductPage />} />
-        <Route path="login" element={<LoginPage />} />
+        <Route path="search" element={<SearchPage />} />
+
+        {/* Customer Commerce Flow */}
         <Route path="cart" element={<CartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="account" element={<AccountPage />} />
+
+        {/* Vendor Portal & Authentication */}
+        <Route path="login" element={<LoginPage />} />
+        <Route path="vendor/register" element={<VendorRegisterPage />} />
+        <Route path="vendor/login" element={<VendorLoginPage />} />
+        <Route path="vendor/dashboard" element={<VendorDashboardPage />} />
+        <Route path="vendor" element={<Navigate to="/vendor/dashboard" replace />} />
+
+        {/* Redirects & 404 */}
         <Route path="home" element={<Navigate to="/" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

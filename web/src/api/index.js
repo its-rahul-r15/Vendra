@@ -1,5 +1,6 @@
-export { api, unwrap, getAccessToken, saveTokens, clearTokens } from './client'
+export { api, unwrap, getAccessToken, getRefreshToken, saveTokens, clearTokens } from './client'
 export { authApi } from './auth'
+export { vendorsApi } from './vendors'
 export { feedApi } from './feed'
 export { catalogApi } from './catalog'
 export { checkoutApi } from './checkout'
