@@ -8,7 +8,6 @@ import { Dashboard } from './pages/Dashboard';
 import { LiveOrders } from './pages/LiveOrders';
 import { Restaurants } from './pages/Restaurants';
 import { Catalog } from './pages/Catalog';
-import { GroceryProducts } from './pages/GroceryProducts';
 import { Coupons } from './pages/Coupons';
 import { Banners } from './pages/Banners';
 import { RemoteConfig } from './pages/RemoteConfig';
@@ -44,9 +43,8 @@ export default function App() {
               >
                 <Route index element={<Dashboard />} />
                 <Route path="orders" element={<LiveOrders />} />
-                <Route path="restaurants" element={<Restaurants />} />
+                <Route path="sellers" element={<Restaurants />} />
                 <Route path="catalog" element={<Catalog />} />
-                <Route path="grocery" element={<GroceryProducts />} />
                 <Route path="coupons" element={<Coupons />} />
                 <Route path="banners" element={<Banners />} />
                 <Route path="remote-config" element={<RemoteConfig />} />

@@ -9,20 +9,14 @@ import {
   Users,
   Bell,
   Database,
-  CloudRain,
   ShieldAlert,
   LogOut,
   Search,
-  Volume2,
-  VolumeX,
   Menu,
   X,
   ExternalLink,
-  ChevronRight,
-  Sparkles,
   Tag,
   Image as ImageIcon,
-  ShoppingCart,
   History,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -31,12 +25,9 @@ import { useAuth } from '../../context/AuthContext';
 export const AdminLayout = () => {
   const {
     remoteConfig,
-    toggleRainSurge,
     toggleMaintenanceMode,
     orders,
     toast,
-    audioChimeEnabled,
-    setAudioChimeEnabled,
     isBackendConnected,
     refetchAll,
   } = useApp();
@@ -51,26 +42,20 @@ export const AdminLayout = () => {
   const navItems = [
     { name: 'Overview', path: '/', icon: LayoutDashboard },
     {
-      name: 'Live Orders',
+      name: 'Orders',
       path: '/orders',
       icon: ShoppingBag,
       badge: activeOrdersCount > 0 ? activeOrdersCount : null,
     },
-    { name: 'Restaurants & Stores', path: '/restaurants', icon: Store },
-    { name: 'Menu & Food Catalog', path: '/catalog', icon: Layers },
-    { name: '10-Min Dark Store Grocery', path: '/grocery', icon: ShoppingCart },
+    { name: 'Sellers & Vendors', path: '/sellers', icon: Store },
+    { name: 'Products & Catalog', path: '/catalog', icon: Layers },
     { name: 'Coupons & Promo Codes', path: '/coupons', icon: Tag },
-    { name: 'App Marketing Banners', path: '/banners', icon: ImageIcon },
-    {
-      name: 'Surge & Remote Config',
-      path: '/remote-config',
-      icon: Sliders,
-      highlight: remoteConfig.rainSurgeActive || remoteConfig.isMaintenanceMode,
-    },
-    { name: 'Users & Delivery Fleet', path: '/users', icon: Users },
-    { name: 'Push Broadcast Hub', path: '/notifications', icon: Bell },
-    { name: 'Master Data & Tags', path: '/master-data', icon: Database },
-    { name: 'System Audit Trail', path: '/audit-logs', icon: History },
+    { name: 'App Banners', path: '/banners', icon: ImageIcon },
+    { name: 'Settings & Config', path: '/remote-config', icon: Sliders },
+    { name: 'Users', path: '/users', icon: Users },
+    { name: 'Push Notifications', path: '/notifications', icon: Bell },
+    { name: 'Master Data', path: '/master-data', icon: Database },
+    { name: 'Audit Logs', path: '/audit-logs', icon: History },
   ];
 
   const handleLogout = () => {
@@ -105,18 +90,18 @@ export const AdminLayout = () => {
         {/* Brand header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800/80">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20 shrink-0">
-              <span className="font-extrabold text-white text-lg tracking-tight">F</span>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
+              <span className="font-extrabold text-white text-lg tracking-tight">V</span>
             </div>
             {sidebarOpen && (
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h1 className="font-bold text-base text-white tracking-wide">FataFat</h1>
-                  <span className="text-[10px] uppercase font-semibold tracking-wider bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded">
+                  <h1 className="font-bold text-base text-white tracking-wide">Vendra</h1>
+                  <span className="text-[10px] uppercase font-semibold tracking-wider bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded">
                     Admin
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 font-medium">Ops & Remote Hub</p>
+                <p className="text-[11px] text-slate-400 font-medium">Ecommerce Admin</p>
               </div>
             )}
           </div>
@@ -141,7 +126,7 @@ export const AdminLayout = () => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                     isActive
-                      ? 'bg-gradient-to-r from-orange-500/20 to-orange-600/10 text-orange-400 border border-orange-500/30 shadow-sm'
+                      ? 'bg-gradient-to-r from-indigo-500/20 to-indigo-600/10 text-indigo-400 border border-indigo-500/30 shadow-sm'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                   }`
                 }
@@ -154,12 +139,9 @@ export const AdminLayout = () => {
                   <div className="flex items-center justify-between flex-1 truncate">
                     <span className="truncate">{item.name}</span>
                     {item.badge && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-orange-500 text-white animate-pulse">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-indigo-500 text-white animate-pulse">
                         {item.badge}
                       </span>
-                    )}
-                    {item.highlight && (
-                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                     )}
                   </div>
                 )}
@@ -168,7 +150,7 @@ export const AdminLayout = () => {
           })}
         </nav>
 
-        {/* Quick App Status & Ops Box */}
+        {/* Backend Status Box */}
         {sidebarOpen && (
           <div className="p-3 mx-3 mb-3 rounded-xl border border-slate-800 bg-slate-950/60 space-y-2.5">
             <div className="flex items-center justify-between text-xs text-slate-400">
@@ -180,23 +162,13 @@ export const AdminLayout = () => {
                 {isBackendConnected ? 'Connected' : 'Offline'}
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span>Rain Surge:</span>
-              <span
-                className={`text-[11px] font-bold ${
-                  remoteConfig.rainSurgeActive ? 'text-amber-400' : 'text-slate-500'
-                }`}
-              >
-                {remoteConfig.rainSurgeActive ? `Active (+₹${remoteConfig.rainSurgeFee})` : 'Off'}
-              </span>
-            </div>
           </div>
         )}
 
         {/* User bar */}
         <div className="p-3 border-t border-slate-800/80 flex items-center justify-between">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-orange-400 font-bold border border-slate-700 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-indigo-400 font-bold border border-slate-700 shrink-0">
               {user?.name ? user.name[0] : 'A'}
             </div>
             {sidebarOpen && (
@@ -230,8 +202,8 @@ export const AdminLayout = () => {
               />
               <input
                 type="text"
-                placeholder="Search orders, restaurants, items, users..."
-                className="w-80 bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500/60 transition"
+                placeholder="Search orders, products, users..."
+                className="w-80 bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 transition"
               />
             </div>
           </div>
@@ -254,56 +226,26 @@ export const AdminLayout = () => {
               </span>
             </button>
 
-            {/* Audio chime toggle */}
-            <button
-              onClick={() => setAudioChimeEnabled(!audioChimeEnabled)}
-              className={`p-2 rounded-xl border text-xs flex items-center gap-1.5 transition ${
-                audioChimeEnabled
-                  ? 'border-slate-800 bg-slate-800/80 text-slate-300'
-                  : 'border-slate-800/60 bg-transparent text-slate-500'
-              }`}
-              title="Audio alert on new incoming orders"
-            >
-              {audioChimeEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              <span className="hidden sm:inline">Chime</span>
-            </button>
-
-            {/* Quick Rain Surge Toggle Button */}
-            <button
-              onClick={toggleRainSurge}
-              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition ${
-                remoteConfig.rainSurgeActive
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-500/20'
-                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
-              }`}
-            >
-              <CloudRain
-                size={16}
-                className={remoteConfig.rainSurgeActive ? 'animate-bounce text-amber-400' : ''}
-              />
-              <span>Surge: {remoteConfig.rainSurgeActive ? `₹${remoteConfig.rainSurgeFee} ON` : 'OFF'}</span>
-            </button>
-
-            {/* Maintenance Mode Emergency Alert Button */}
+            {/* Maintenance Mode Alert */}
             {remoteConfig.isMaintenanceMode && (
               <button
                 onClick={toggleMaintenanceMode}
                 className="px-3 py-1.5 rounded-xl border border-rose-500/60 bg-rose-500/20 text-rose-300 text-xs font-bold flex items-center gap-1.5 animate-pulse"
-                title="Consumer apps locked. Click to disable maintenance."
+                title="Store locked. Click to disable maintenance."
               >
                 <ShieldAlert size={16} />
                 <span>MAINTENANCE MODE ACTIVE</span>
               </button>
             )}
 
-            {/* Customer App Link */}
+            {/* Storefront Link */}
             <a
-              href={import.meta.env.VITE_CONSUMER_APP_URL || 'http://localhost:8081'}
+              href={import.meta.env.VITE_CONSUMER_APP_URL || 'http://localhost:5173'}
               target="_blank"
               rel="noreferrer"
-              className="hidden md:flex items-center gap-1 text-xs text-orange-400 hover:text-orange-300 bg-orange-500/10 border border-orange-500/20 px-3 py-1.5 rounded-xl transition font-medium"
+              className="hidden md:flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl transition font-medium"
             >
-              <span>Consumer App</span>
+              <span>Storefront</span>
               <ExternalLink size={13} />
             </a>
           </div>

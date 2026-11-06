@@ -18,6 +18,13 @@ export const authApi = {
     return data
   },
 
+  async loginWithGoogle(payload) {
+    // payload: { email, name, avatar, googleId } decoded from Google credential
+    const { data } = unwrap(await api.post('/auth/google', payload))
+    if (data?.accessToken) saveTokens(data.accessToken, data.refreshToken)
+    return data
+  },
+
   async logout() {
     try {
       await api.post('/auth/logout')

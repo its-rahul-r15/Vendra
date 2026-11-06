@@ -25,17 +25,16 @@ import { formatRupees, rupeesToPaise } from '../utils/formatters';
 import { Pagination } from '../components/common/Pagination';
 
 export const Restaurants = () => {
-  const { restaurants, toggleRestaurantStatus, showToast, refetchAll } = useApp();
+  const { sellers, toggleSellerStatus, showToast, refetchAll } = useApp();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRest, setNewRest] = useState({
     name: '',
-    category: 'Food',
-    cuisine: '',
+    category: 'General',
     locality: '',
     phone: '',
-    commissionRate: 18,
+    commissionRate: 10,
   });
 
   // Menu Modal State
@@ -61,16 +60,15 @@ export const Restaurants = () => {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return restaurants.filter((r) => {
+    return (sellers || []).filter((r) => {
       const matchCat = selectedCategory === 'ALL' || r.category === selectedCategory;
       const matchSearch =
         !q ||
         (r.name || '').toLowerCase().includes(q) ||
-        (r.cuisine || '').toLowerCase().includes(q) ||
         (r.locality || '').toLowerCase().includes(q);
       return matchCat && matchSearch;
     });
-  }, [restaurants, selectedCategory, search]);
+  }, [sellers, selectedCategory, search]);
 
   const paginatedRestaurants = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -79,7 +77,7 @@ export const Restaurants = () => {
 
   const handleAddRestaurant = async (e) => {
     e.preventDefault();
-    if (!newRest.name || !newRest.cuisine) {
+    if (!newRest.name) {
       showToast('Please fill all required fields', 'error');
       return;
     }
@@ -87,29 +85,21 @@ export const Restaurants = () => {
     try {
       await api.createRestaurant({
         name: newRest.name,
-        type: newRest.category === 'Grocery' ? 'grocery' : 'restaurant',
-        cuisines: newRest.cuisine.split(',').map((s) => s.trim()),
+        type: 'seller',
         phone: newRest.phone || '+91 98000 00000',
         commissionRate: Number(newRest.commissionRate),
         address: {
           line1: newRest.locality || 'City Centre',
-          city: 'Noida',
+          city: 'Delhi',
         },
       });
 
       setIsModalOpen(false);
-      setNewRest({
-        name: '',
-        category: 'Food',
-        cuisine: '',
-        locality: '',
-        phone: '',
-        commissionRate: 18,
-      });
-      showToast(`Store ${newRest.name} onboarded and saved to MongoDB!`);
+      setNewRest({ name: '', category: 'General', locality: '', phone: '', commissionRate: 10 });
+      showToast(`Seller "${newRest.name}" onboarded successfully!`);
       refetchAll();
     } catch (err) {
-      showToast(`Failed to onboard store: ${err.message}`, 'error');
+      showToast(`Failed to onboard seller: ${err.message}`, 'error');
     }
   };
 
@@ -227,19 +217,19 @@ export const Restaurants = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-white tracking-tight">
-            Restaurants & Merchant Stores
+            Sellers & Vendors
           </h2>
           <p className="text-xs text-slate-400">
-            Manage vendor onboarding, verified badges, menus, dishes, and open/close status
+            Manage seller onboarding, verification, and active/inactive status
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-lg shadow-orange-500/20 flex items-center gap-1.5 transition self-start sm:self-auto cursor-pointer"
+          className="px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-1.5 transition self-start sm:self-auto cursor-pointer"
         >
           <Plus size={16} />
-          <span>Onboard New Partner</span>
+          <span>Add New Seller</span>
         </button>
       </div>
 
@@ -256,7 +246,7 @@ export const Restaurants = () => {
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
               }`}
             >
-              {cat === 'ALL' ? 'All Partners' : cat}
+              {cat === 'ALL' ? 'All Sellers' : cat}
             </button>
           ))}
         </div>
@@ -265,7 +255,7 @@ export const Restaurants = () => {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by restaurant name, cuisine..."
+            placeholder="Search sellers by name or location..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-orange-500"
@@ -366,7 +356,7 @@ export const Restaurants = () => {
                 </div>
 
                 <button
-                  onClick={() => toggleRestaurantStatus(rest.id)}
+                  onClick={() => toggleSellerStatus(rest.id)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                     rest.isOpen
                       ? 'bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 border border-rose-500/30'
@@ -413,7 +403,7 @@ export const Restaurants = () => {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-white text-base">
-                    {selectedRestForMenu.name} — Menu & Dishes
+                    {selectedRestForMenu.name} â€” Menu & Dishes
                   </h3>
                   <p className="text-xs text-slate-400">
                     Live menu items, dish availability toggles, and pricing controls
@@ -511,7 +501,7 @@ export const Restaurants = () => {
                                 : 'border-rose-500 text-rose-400'
                             }`}
                           >
-                            ●
+                            â—
                           </span>
                           <h4 className="font-bold text-white text-sm truncate">{dish.name}</h4>
                           <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-medium">
@@ -580,7 +570,7 @@ export const Restaurants = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Price (₹) *</label>
+                  <label className="block font-semibold text-slate-300 mb-1">Price (â‚¹) *</label>
                   <input
                     type="number"
                     required
@@ -761,3 +751,4 @@ export const Restaurants = () => {
     </div>
   );
 };
+

@@ -1,18 +1,5 @@
-import React from 'react';
-import {
-  TrendingUp,
-  ShoppingBag,
-  Bike,
-  Clock,
-  ArrowUpRight,
-  ChevronRight,
-  Store,
-  AlertCircle,
-  CloudRain,
-  ShieldAlert,
-  CheckCircle2,
-  DollarSign,
-} from 'lucide-react';
+﻿import React from 'react';
+;
 import { useApp } from '../context/AppContext';
 import { formatPaise } from '../utils/formatters';
 import { Link } from 'react-router-dom';
@@ -52,7 +39,7 @@ export const Dashboard = () => {
         <div>
           <h2 className="text-2xl font-extrabold text-white tracking-tight">Ops Command Center</h2>
           <p className="text-xs text-slate-400">
-            Real-time food delivery & quick commerce analytics and control tower.
+            Real-time ecommerce analytics and control center.
           </p>
         </div>
 
@@ -92,7 +79,7 @@ export const Dashboard = () => {
               {stats.gmvGrowth}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">vs ₹41,340 yesterday</p>
+          <p className="text-[11px] text-slate-500 mt-1">vs â‚¹41,340 yesterday</p>
         </div>
 
         {/* Total Orders Today */}
@@ -111,20 +98,20 @@ export const Dashboard = () => {
               {pendingOrders.length} pending
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">Avg fulfillment time: 24 mins</p>
+          <p className="text-[11px] text-slate-500 mt-1">Avg processing time: ~1 day</p>
         </div>
 
         {/* Active Riders */}
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur relative overflow-hidden group hover:border-slate-700 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">Fleet On Road</span>
+            <span className="text-xs font-semibold text-slate-400">Active Sellers</span>
             <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
               <Bike size={16} />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-white tracking-tight">
-              {stats.activeRiders} Riders
+              {stats.activeSellers} Riders
             </span>
             <span className="text-xs text-blue-400 font-semibold">92% active</span>
           </div>
@@ -151,7 +138,7 @@ export const Dashboard = () => {
                 remoteConfig.rainSurgeActive ? 'text-amber-300' : 'text-slate-300'
               }`}
             >
-              {remoteConfig.rainSurgeActive ? `Surge ₹${remoteConfig.rainSurgeFee}` : 'Standard Slabs'}
+              {remoteConfig.rainSurgeActive ? `Surge â‚¹${remoteConfig.rainSurgeFee}` : 'Standard Slabs'}
             </span>
           </div>
           <div className="mt-2 flex items-center justify-between">
@@ -204,10 +191,10 @@ export const Dashboard = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs font-bold text-orange-400">{order.id}</span>
                     <span className="text-xs font-semibold text-slate-200">{order.customerName}</span>
-                    <span className="text-[11px] text-slate-500">• {order.placedAt}</span>
+                    <span className="text-[11px] text-slate-500">â€¢ {order.placedAt}</span>
                   </div>
                   <p className="text-xs text-slate-300">
-                    {order.restaurantName} —{' '}
+                    {order.restaurantName} â€”{' '}
                     <span className="text-slate-400">
                       {order.items.map((i) => `${i.qty}x ${i.name}`).join(', ')}
                     </span>
@@ -272,7 +259,7 @@ export const Dashboard = () => {
                 </p>
               </div>
               <span className="text-xs font-bold text-orange-400">
-                ₹{remoteConfig.baseDeliveryFee}
+                â‚¹{remoteConfig.baseDeliveryFee}
               </span>
             </div>
 
@@ -282,17 +269,17 @@ export const Dashboard = () => {
                 <p className="text-[11px] text-slate-400">Per km above base</p>
               </div>
               <span className="text-xs font-bold text-slate-200">
-                ₹{remoteConfig.extraFeePerKm}/km
+                â‚¹{remoteConfig.extraFeePerKm}/km
               </span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold text-slate-200">Night Surcharge</p>
-                <p className="text-[11px] text-slate-400">11:00 PM – 06:00 AM</p>
+                <p className="text-[11px] text-slate-400">11:00 PM â€“ 06:00 AM</p>
               </div>
               <span className="text-xs font-bold text-slate-200">
-                ₹{remoteConfig.nightDeliveryFee}
+                â‚¹{remoteConfig.nightDeliveryFee}
               </span>
             </div>
           </div>
@@ -311,3 +298,4 @@ export const Dashboard = () => {
     </div>
   );
 };
+

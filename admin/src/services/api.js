@@ -20,8 +20,8 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('fatafat_admin_token');
-  if (token && token !== 'demo-admin-jwt-token' && token !== 'null') {
+  const token = localStorage.getItem('vendra_admin_token');
+  if (token && token !== 'demo-vendra-jwt-token' && token !== 'null') {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -32,8 +32,8 @@ apiClient.interceptors.response.use(
   (error) => {
     const isLoginRequest = error.config?.url?.includes('/auth/login');
     if (error.response?.status === 401 && !isLoginRequest) {
-      localStorage.removeItem('fatafat_admin_token');
-      localStorage.removeItem('fatafat_admin_user');
+      localStorage.removeItem('vendra_admin_token');
+      localStorage.removeItem('vendra_admin_user');
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

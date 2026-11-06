@@ -7,7 +7,7 @@ export const config = {
     lng: 77.209,
     label: 'New Delhi',
   },
-  tokenKey: 'ftafat_access_token',
-  refreshKey: 'ftafat_refresh_token',
-  locationKey: 'ftafat_location',
+  tokenKey: 'vendra_access_token',
+  refreshKey: 'vendra_refresh_token',
+  locationKey: 'vendra_location',
 }

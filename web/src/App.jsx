@@ -16,7 +16,8 @@ import { AccountPage } from '@/pages/AccountPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { Spinner } from '@/components/ui/Spinner'
 
-export default function App() {
+// Inner component — rendered inside BrowserRouter so hooks like useNavigate work
+function AppRoutes() {
   const bootstrap = useAuthStore((s) => s.bootstrap)
   const bootstrapped = useAuthStore((s) => s.bootstrapped)
   const user = useAuthStore((s) => s.user)
@@ -41,22 +42,28 @@ export default function App() {
   }
 
   return (
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="search" element={<SearchPage />} />
+        <Route path="restaurants/:id" element={<RestaurantPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="cart" element={<CartPage />} />
+        <Route path="checkout" element={<CheckoutPage />} />
+        <Route path="orders" element={<OrdersPage />} />
+        <Route path="orders/:id" element={<OrderDetailPage />} />
+        <Route path="account" element={<AccountPage />} />
+        <Route path="home" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  )
+}
+
+export default function App() {
+  return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="search" element={<SearchPage />} />
-          <Route path="restaurants/:id" element={<RestaurantPage />} />
-          <Route path="login" element={<LoginPage />} />
-          <Route path="cart" element={<CartPage />} />
-          <Route path="checkout" element={<CheckoutPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="orders/:id" element={<OrderDetailPage />} />
-          <Route path="account" element={<AccountPage />} />
-          <Route path="home" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   )
 }

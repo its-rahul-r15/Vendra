@@ -47,6 +47,18 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  async loginWithGoogle(googlePayload) {
+    set({ loading: true, error: null })
+    try {
+      const data = await authApi.loginWithGoogle(googlePayload)
+      set({ user: data.user, loading: false })
+      return data
+    } catch (error) {
+      set({ loading: false, error: error.message })
+      throw error
+    }
+  },
+
   async logout() {
     await authApi.logout()
     set({ user: null })

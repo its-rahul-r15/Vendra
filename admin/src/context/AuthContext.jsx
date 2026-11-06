@@ -17,7 +17,7 @@ const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes auto-lock for securi
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('fatafat_admin_user');
+      const saved = localStorage.getItem('vendra_admin_user');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -25,8 +25,8 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [token, setToken] = useState(() => {
-    const saved = localStorage.getItem('fatafat_admin_token');
-    return saved && saved !== 'demo-admin-jwt-token' && saved !== 'null' ? saved : null;
+    const saved = localStorage.getItem('vendra_admin_token');
+    return saved && saved !== 'demo-vendra-jwt-token' && saved !== 'null' ? saved : null;
   });
 
   const [loading, setLoading] = useState(false);
@@ -35,18 +35,18 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('fatafat_admin_token');
-    localStorage.removeItem('fatafat_admin_user');
+    localStorage.removeItem('vendra_admin_token');
+    localStorage.removeItem('vendra_admin_user');
     delete apiClient.defaults.headers.common['Authorization'];
   }, []);
 
   // Update Axios headers whenever token changes
   useEffect(() => {
     if (token) {
-      localStorage.setItem('fatafat_admin_token', token);
+      localStorage.setItem('vendra_admin_token', token);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
-      localStorage.removeItem('fatafat_admin_token');
+      localStorage.removeItem('vendra_admin_token');
       delete apiClient.defaults.headers.common['Authorization'];
     }
   }, [token]);
@@ -54,9 +54,9 @@ export const AuthProvider = ({ children }) => {
   // Persist user
   useEffect(() => {
     if (user) {
-      localStorage.setItem('fatafat_admin_user', JSON.stringify(user));
+      localStorage.setItem('vendra_admin_user', JSON.stringify(user));
     } else {
-      localStorage.removeItem('fatafat_admin_user');
+      localStorage.removeItem('vendra_admin_user');
     }
   }, [user]);
 
@@ -112,8 +112,8 @@ export const AuthProvider = ({ children }) => {
         }
 
         // Synchronously save token to localStorage and axios defaults
-        localStorage.setItem('fatafat_admin_token', receivedToken);
-        localStorage.setItem('fatafat_admin_user', JSON.stringify(receivedUser));
+        localStorage.setItem('vendra_admin_token', receivedToken);
+        localStorage.setItem('vendra_admin_user', JSON.stringify(receivedUser));
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${receivedToken}`;
 
         setUser(receivedUser);

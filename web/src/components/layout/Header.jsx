@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+﻿import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { MapPin, Search, ShoppingBag, UserRound, Leaf } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore } from '@/stores/cart.store'
@@ -22,7 +22,7 @@ export function Header() {
         <Link to="/" className="flex shrink-0 items-center gap-2">
           <img
             src="/brand/ftafat-logo.png"
-            alt="Ftafat"
+            alt="Vendra"
             className="h-9 w-auto md:h-10"
           />
           <span className="hidden font-display text-2xl leading-none text-brand sm:inline">
@@ -52,7 +52,7 @@ export function Header() {
           className="ml-auto flex h-11 min-w-0 flex-1 items-center gap-2 rounded-2xl border border-line bg-paper/70 px-3 text-left text-sm text-muted transition hover:border-brand/30 md:max-w-md"
         >
           <Search className="size-4 shrink-0" />
-          <span className="truncate">Search restaurants or dishes</span>
+          <span className="truncate">Search products or categories</span>
         </button>
 
         <button
@@ -116,3 +116,4 @@ export function Header() {
     </header>
   )
 }
+

@@ -6,12 +6,10 @@ export function Footer() {
       <div className="container-app grid gap-8 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2">
-            <img src="/brand/ftafat-logo.png" alt="" className="h-9 brightness-0 invert" />
-            <span className="font-display text-3xl tracking-wide">FTAFAT</span>
+            <span className="font-display text-3xl tracking-wide">VENDRA</span>
           </div>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/65">
-            Street-fast food delivery for your city. Order from kitchens nearby —
-            hot, quick, no fuss.
+            Your one-stop ecommerce destination. Shop electronics, fashion, home & more with fast delivery.
           </p>
         </div>
 
@@ -29,14 +27,14 @@ export function Footer() {
           <h4 className="font-display text-xl tracking-wide text-white/90">Support</h4>
           <div className="mt-3 flex flex-col gap-2 text-sm text-white/65">
             <Link to="/account" className="hover:text-white">Account</Link>
-            <a href="mailto:support@ftafat.com" className="hover:text-white">
-              support@ftafat.com
+            <a href="mailto:support@vendra.com" className="hover:text-white">
+              support@vendra.com
             </a>
           </div>
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs text-white/45">
-        © {new Date().getFullYear()} Ftafat. All rights reserved.
+        © {new Date().getFullYear()} Vendra. All rights reserved.
       </div>
     </footer>
   )

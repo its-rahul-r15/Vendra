@@ -6,9 +6,6 @@ import {
   CheckCircle,
   XCircle,
   Tag,
-  ArrowUpDown,
-  Utensils,
-  DollarSign,
   Package,
   Edit2,
   Trash2,
@@ -22,21 +19,21 @@ import { formatRupees, formatPaise } from '../utils/formatters';
 import { Pagination } from '../components/common/Pagination';
 
 const PRESET_IMAGES = [
-  { name: 'Pizza', url: 'https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg' },
-  { name: 'Burger', url: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg' },
-  { name: 'Biryani', url: 'https://images.pexels.com/photos/1624487/pexels-photo-1624487.jpeg' },
-  { name: 'Paratha', url: 'https://images.pexels.com/photos/12737656/pexels-photo-12737656.jpeg' },
-  { name: 'Noodles', url: 'https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg' },
-  { name: 'Desserts', url: 'https://images.pexels.com/photos/2144112/pexels-photo-2144112.jpeg' },
-  { name: 'Rolls', url: 'https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg' },
-  { name: 'Thali', url: 'https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg' },
-  { name: 'Coffee / Tea', url: 'https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg' },
-  { name: 'Ice Cream', url: 'https://images.pexels.com/photos/1362534/pexels-photo-1362534.jpeg' },
+  { name: 'Electronics', url: 'https://images.pexels.com/photos/356056/pexels-photo-356056.jpeg' },
+  { name: 'Fashion', url: 'https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg' },
+  { name: 'Home & Kitchen', url: 'https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg' },
+  { name: 'Beauty', url: 'https://images.pexels.com/photos/2113855/pexels-photo-2113855.jpeg' },
+  { name: 'Sports', url: 'https://images.pexels.com/photos/863988/pexels-photo-863988.jpeg' },
+  { name: 'Books', url: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg' },
+  { name: 'Toys', url: 'https://images.pexels.com/photos/35537/child-children-girl-happy.jpg' },
+  { name: 'Grocery', url: 'https://images.pexels.com/photos/1367242/pexels-photo-1367242.jpeg' },
+  { name: 'Furniture', url: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg' },
+  { name: 'Accessories', url: 'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg' },
 ];
 
 export const Catalog = () => {
-  const { categories, setCategories, menuItems, toggleItemStock, showToast } = useApp();
-  const [activeTab, setActiveTab] = useState('ITEMS'); // ITEMS or CATEGORIES
+  const { categories, setCategories, products, toggleItemStock, showToast } = useApp();
+  const [activeTab, setActiveTab] = useState('PRODUCTS');
   const [selectedCatFilter, setSelectedCatFilter] = useState('ALL');
   const [search, setSearch] = useState('');
 
@@ -53,9 +50,9 @@ export const Catalog = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const filteredItems = useMemo(() => {
+  const filteredProducts = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return menuItems.filter((item) => {
+    return (products || []).filter((item) => {
       const matchCat = selectedCatFilter === 'ALL' || item.category === selectedCatFilter;
       const matchSearch =
         !q ||
@@ -63,12 +60,12 @@ export const Catalog = () => {
         (item.category || '').toLowerCase().includes(q);
       return matchCat && matchSearch;
     });
-  }, [menuItems, selectedCatFilter, search]);
+  }, [products, selectedCatFilter, search]);
 
-  const paginatedItems = useMemo(() => {
+  const paginatedProducts = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return filteredItems.slice(start, start + pageSize);
-  }, [filteredItems, page, pageSize]);
+    return filteredProducts.slice(start, start + pageSize);
+  }, [filteredProducts, page, pageSize]);
 
   const handleOpenAddCat = () => {
     setEditingCat(null);
@@ -128,7 +125,7 @@ export const Catalog = () => {
           active: catForm.isActive,
         };
         setCategories([...categories, newCat]);
-        showToast(`Category "${newCat.name}" added to database!`);
+        showToast(`Category "${newCat.name}" created!`);
       }
       setIsCatModalOpen(false);
     } catch (err) {
@@ -137,7 +134,7 @@ export const Catalog = () => {
   };
 
   const handleDeleteCategory = async (id, name) => {
-    if (!window.confirm(`Delete category "${name}"?`)) return;
+    if (!window.confirm(`Delete category "${name}"? This cannot be undone.`)) return;
     try {
       await api.deleteCategory(id);
       setCategories((prev) => prev.filter((c) => c.id !== id));
@@ -153,29 +150,29 @@ export const Catalog = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-white tracking-tight">
-            Catalog & Live Inventory
+            Product Catalog
           </h2>
           <p className="text-xs text-slate-400">
-            Control items, categories, pricing, and 1-click in-stock / out-of-stock switches
+            Manage products, categories, pricing and inventory
           </p>
         </div>
 
         <div className="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
           <button
-            onClick={() => setActiveTab('ITEMS')}
+            onClick={() => setActiveTab('PRODUCTS')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'ITEMS'
-                ? 'bg-orange-500 text-white shadow'
+              activeTab === 'PRODUCTS'
+                ? 'bg-indigo-500 text-white shadow'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            Menu Items ({menuItems.length})
+            Products ({(products || []).length})
           </button>
           <button
             onClick={() => setActiveTab('CATEGORIES')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'CATEGORIES'
-                ? 'bg-orange-500 text-white shadow'
+                ? 'bg-indigo-500 text-white shadow'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -184,7 +181,7 @@ export const Catalog = () => {
         </div>
       </div>
 
-      {activeTab === 'ITEMS' && (
+      {activeTab === 'PRODUCTS' && (
         <div className="space-y-4">
           {/* Filter Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -197,7 +194,7 @@ export const Catalog = () => {
                     : 'bg-slate-900 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                All Items
+                All Products
               </button>
               {categories.map((c) => (
                 <button
@@ -218,92 +215,90 @@ export const Catalog = () => {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search menu items..."
+                placeholder="Search products..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-orange-500"
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
               />
             </div>
           </div>
 
-          {/* Items Table */}
+          {/* Products Table */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/80 overflow-hidden shadow-xl">
             <table className="w-full text-left text-xs text-slate-300">
               <thead className="bg-slate-950/70 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-800">
                 <tr>
-                  <th className="px-5 py-3.5">Item Name</th>
+                  <th className="px-5 py-3.5">Product Name</th>
                   <th className="px-5 py-3.5">Category</th>
-                  <th className="px-5 py-3.5">Selling Price</th>
-                  <th className="px-5 py-3.5">Availability</th>
-                  <th className="px-5 py-3.5 text-right">Quick Stock Toggle</th>
+                  <th className="px-5 py-3.5">Price</th>
+                  <th className="px-5 py-3.5">Stock Status</th>
+                  <th className="px-5 py-3.5 text-right">Stock Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80">
-                {paginatedItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-800/40 transition">
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className={`w-3 h-3 rounded flex items-center justify-center border text-[8px] font-bold ${
-                            item.isVeg
-                              ? 'border-emerald-500 text-emerald-400'
-                              : 'border-rose-500 text-rose-400'
-                          }`}
-                        >
-                          ●
-                        </span>
-                        <div>
-                          <span className="font-bold text-white text-sm">{item.name}</span>
-                          <p className="text-[10px] font-mono text-slate-500">{item.id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 text-[11px] font-medium">
-                        {item.category}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 font-bold font-mono text-emerald-400">
-                      {formatRupees(item.price)}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          item.inStock
-                            ? 'bg-emerald-500/10 text-emerald-400'
-                            : 'bg-rose-500/10 text-rose-400'
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            item.inStock ? 'bg-emerald-400' : 'bg-rose-400'
-                          }`}
-                        />
-                        {item.inStock ? 'Available' : 'Sold Out'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <button
-                        onClick={() => toggleItemStock(item.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                          item.inStock
-                            ? 'bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 border border-rose-500/30'
-                            : 'bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 border border-emerald-500/30'
-                        }`}
-                      >
-                        {item.inStock ? 'Mark Out-of-Stock' : 'Restock Item'}
-                      </button>
+                {paginatedProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-10 text-center text-slate-500 text-sm">
+                      No products found. Products will appear here once added.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  paginatedProducts.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-800/40 transition">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div>
+                            <span className="font-bold text-white text-sm">{item.name}</span>
+                            <p className="text-[10px] font-mono text-slate-500">{item.id}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 text-[11px] font-medium">
+                          {item.category}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 font-bold font-mono text-emerald-400">
+                        {formatRupees(item.price)}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            item.inStock
+                              ? 'bg-emerald-500/10 text-emerald-400'
+                              : 'bg-rose-500/10 text-rose-400'
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              item.inStock ? 'bg-emerald-400' : 'bg-rose-400'
+                            }`}
+                          />
+                          {item.inStock ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <button
+                          onClick={() => toggleItemStock(item.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                            item.inStock
+                              ? 'bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 border border-rose-500/30'
+                              : 'bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 border border-emerald-500/30'
+                          }`}
+                        >
+                          {item.inStock ? 'Mark Out-of-Stock' : 'Restock'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
-          {/* Pagination */}
           <Pagination
             currentPage={page}
-            totalItems={filteredItems.length}
+            totalItems={filteredProducts.length}
             pageSize={pageSize}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
@@ -315,12 +310,12 @@ export const Catalog = () => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-white text-base">Food Categories Management</h3>
-              <p className="text-xs text-slate-400">Order, active state, and category banners shown in apps</p>
+              <h3 className="font-bold text-white text-base">Product Categories</h3>
+              <p className="text-xs text-slate-400">Manage categories shown to customers in the app and website</p>
             </div>
             <button
               onClick={handleOpenAddCat}
-              className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shadow-lg shadow-orange-500/20 flex items-center gap-1.5 transition cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 flex items-center gap-1.5 transition cursor-pointer"
             >
               <Plus size={15} />
               <span>Add Category</span>
@@ -329,59 +324,65 @@ export const Catalog = () => {
 
           {/* Categories Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {categories.map((cat, idx) => (
-              <div
-                key={cat.id}
-                className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3 shadow-lg hover:border-slate-700 transition"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  {cat.image ? (
-                    <img
-                      src={cat.image}
-                      alt={cat.name}
-                      className="w-11 h-11 rounded-xl object-cover bg-slate-800 shrink-0 border border-slate-700"
-                    />
-                  ) : (
-                    <div className="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20">
-                      <Tag size={18} />
+            {categories.length === 0 ? (
+              <div className="col-span-3 py-12 text-center text-slate-500 text-sm">
+                No categories yet. Click "Add Category" to create one.
+              </div>
+            ) : (
+              categories.map((cat, idx) => (
+                <div
+                  key={cat.id}
+                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3 shadow-lg hover:border-slate-700 transition"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {cat.image ? (
+                      <img
+                        src={cat.image}
+                        alt={cat.name}
+                        className="w-11 h-11 rounded-xl object-cover bg-slate-800 shrink-0 border border-slate-700"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">
+                        <Tag size={18} />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] text-slate-500">#{cat.order || idx + 1}</span>
+                        <h4 className="font-bold text-white text-sm truncate">{cat.name}</h4>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">{cat.itemCount || 0} products</p>
                     </div>
-                  )}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] text-slate-500">#{cat.order || idx + 1}</span>
-                      <h4 className="font-bold text-white text-sm truncate">{cat.name}</h4>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{cat.itemCount || 0} items listed</p>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                        cat.active !== false
+                          ? 'bg-emerald-500/10 text-emerald-400'
+                          : 'bg-rose-500/10 text-rose-400'
+                      }`}
+                    >
+                      {cat.active !== false ? 'Active' : 'Hidden'}
+                    </span>
+                    <button
+                      onClick={() => handleOpenEditCat(cat)}
+                      className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      title="Edit Category"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                      className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
+                      title="Delete Category"
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-1 shrink-0">
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                      cat.active !== false
-                        ? 'bg-emerald-500/10 text-emerald-400'
-                        : 'bg-rose-500/10 text-rose-400'
-                    }`}
-                  >
-                    {cat.active !== false ? 'Active' : 'Hidden'}
-                  </span>
-                  <button
-                    onClick={() => handleOpenEditCat(cat)}
-                    className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                    title="Edit Category"
-                  >
-                    <Edit2 size={13} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                    className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
-                    title="Delete Category"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       )}
@@ -408,10 +409,10 @@ export const Catalog = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Pizza, Burger, North Indian"
+                  placeholder="e.g. Electronics, Fashion, Home & Kitchen"
                   value={catForm.name}
                   onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-orange-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -421,22 +422,22 @@ export const Catalog = () => {
                   type="number"
                   value={catForm.order}
                   onChange={(e) => setCatForm({ ...catForm, order: Number(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-orange-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-semibold text-slate-300">Category Icon / Image URL</label>
+                <label className="block font-semibold text-slate-300">Category Image URL</label>
                 <input
                   type="text"
                   placeholder="https://images.pexels.com/..."
                   value={catForm.image}
                   onChange={(e) => setCatForm({ ...catForm, image: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-orange-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-indigo-500"
                 />
 
                 <div className="pt-1">
-                  <span className="text-[10px] text-slate-400 font-semibold">1-Click Presets:</span>
+                  <span className="text-[10px] text-slate-400 font-semibold">Quick Presets:</span>
                   <div className="flex items-center gap-1.5 flex-wrap mt-1">
                     {PRESET_IMAGES.map((p) => (
                       <button
@@ -445,7 +446,7 @@ export const Catalog = () => {
                         onClick={() => setCatForm({ ...catForm, image: p.url })}
                         className={`text-[10px] px-2 py-0.5 rounded-lg border transition cursor-pointer ${
                           catForm.image === p.url
-                            ? 'bg-orange-500 text-white border-orange-500'
+                            ? 'bg-indigo-500 text-white border-indigo-500'
                             : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
                         }`}
                       >
@@ -456,15 +457,22 @@ export const Catalog = () => {
                 </div>
               </div>
 
+              {catForm.image && (
+                <div className="flex items-center gap-3 p-2 bg-slate-950 rounded-xl border border-slate-800">
+                  <img src={catForm.image} alt="Preview" className="w-12 h-12 rounded-lg object-cover" onError={(e) => e.target.style.display = 'none'} />
+                  <span className="text-slate-400 text-[11px]">Image preview</span>
+                </div>
+              )}
+
               <div className="pt-1">
                 <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={catForm.isActive}
                     onChange={(e) => setCatForm({ ...catForm, isActive: e.target.checked })}
-                    className="w-4 h-4 rounded text-orange-500 bg-slate-950 border-slate-800"
+                    className="w-4 h-4 rounded text-indigo-500 bg-slate-950 border-slate-800"
                   />
-                  <span>Active in Customer Mobile App</span>
+                  <span>Visible to Customers</span>
                 </label>
               </div>
 
@@ -478,7 +486,7 @@ export const Catalog = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold shadow-lg shadow-orange-500/20 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-500/20 cursor-pointer"
                 >
                   {editingCat ? 'Update Category' : 'Create Category'}
                 </button>
