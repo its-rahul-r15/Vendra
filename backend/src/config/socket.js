@@ -10,7 +10,13 @@ let io = null;
 function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: env.cors.allowedOrigins,
+      origin: (origin, callback) => {
+        if (!origin || origin.includes('vercel.app') || origin.includes('localhost') || env.cors.allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true,
     },

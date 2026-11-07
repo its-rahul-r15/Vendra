@@ -74,6 +74,30 @@ export const api = {
     const res = await apiClient.patch(`/admin/orders/${orderId}/status`, { status, reason });
     return res.data?.data;
   },
+  getOrderDetail: async (orderId) => {
+    const res = await apiClient.get(`/admin/orders/${orderId}/detail`);
+    return res.data?.data;
+  },
+  processRefund: async (orderId, payload) => {
+    const res = await apiClient.post(`/admin/orders/${orderId}/refund`, payload);
+    return res.data?.data;
+  },
+  generateInvoice: async (orderId, payload) => {
+    const res = await apiClient.post(`/admin/orders/${orderId}/invoice`, payload);
+    return res.data?.data;
+  },
+  sendInvoice: async (orderId) => {
+    const res = await apiClient.post(`/admin/orders/${orderId}/invoice/send`);
+    return res.data?.data;
+  },
+  bulkUpdateOrderStatus: async (orderIds, status, reason) => {
+    const res = await apiClient.patch('/admin/orders/bulk-status', { orderIds, status, reason });
+    return res.data?.data;
+  },
+  downloadInvoice: async (orderId) => {
+    const res = await apiClient.get(`/admin/orders/${orderId}/invoice/download`, { responseType: 'blob' });
+    return res.data;
+  },
 
   // Restaurants / Stores
   getRestaurants: async (params = {}) => {
@@ -335,5 +359,35 @@ export const api = {
   getGroceryCategories: async () => {
     const res = await apiClient.get('/grocery/categories');
     return res.data?.data?.categories || [];
+  },
+
+  // Hero Showcase Configs
+  getHeroConfigs: async (params = {}) => {
+    const res = await apiClient.get('/admin/hero-configs', { params });
+    return res.data?.data?.configs || [];
+  },
+  getHeroConfig: async (id) => {
+    const res = await apiClient.get(`/admin/hero-configs/${id}`);
+    return res.data?.data?.config;
+  },
+  createHeroConfig: async (payload) => {
+    const res = await apiClient.post('/admin/hero-configs', payload);
+    return res.data?.data?.config;
+  },
+  updateHeroConfig: async (id, payload) => {
+    const res = await apiClient.put(`/admin/hero-configs/${id}`, payload);
+    return res.data?.data?.config;
+  },
+  deleteHeroConfig: async (id) => {
+    const res = await apiClient.delete(`/admin/hero-configs/${id}`);
+    return res.data;
+  },
+  reorderHeroConfigs: async (items) => {
+    const res = await apiClient.put('/admin/hero-configs/reorder', { items });
+    return res.data;
+  },
+  seedDefaultHeroConfigs: async () => {
+    const res = await apiClient.post('/admin/hero-configs/seed');
+    return res.data?.data;
   },
 };

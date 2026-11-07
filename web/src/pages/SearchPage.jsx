@@ -89,13 +89,13 @@ export function SearchPage() {
           Search Products & Independent Stores
         </h1>
 
-        <div className="relative mt-6 max-w-2xl">
+        <div className="relative mt-6 w-full max-w-2xl">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#737069]" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search across all categories, brands, foods, and shops…"
-            className="h-13 w-full rounded-2xl border border-[#121212] bg-white pl-12 pr-4 text-base text-[#121212] outline-none shadow-sm transition placeholder:text-[#99958d] focus:ring-2 focus:ring-[#121212]/10"
+            className="h-12 sm:h-13 w-full rounded-2xl border border-[#121212] bg-white pl-12 pr-4 text-sm sm:text-base text-[#121212] outline-none shadow-sm transition placeholder:text-[#99958d] focus:ring-2 focus:ring-[#121212]/10"
           />
         </div>
 

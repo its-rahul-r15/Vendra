@@ -110,6 +110,11 @@ export const AppProvider = ({ children }) => {
             status,
             placedAt: ord.createdAt ? new Date(ord.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent',
             address: ord.deliveryAddress ? `${ord.deliveryAddress.line1 || ''}, ${ord.deliveryAddress.city || ''}` : 'Location provided in app',
+            // Include invoice and refund data from backend
+            invoice: ord.invoice || { status: 'NOT_GENERATED' },
+            refund: ord.refund || { status: 'NONE' },
+            payment: ord.payment || { status: 'pending', method: 'ONLINE' },
+            vertical: ord.vertical || 'food',
           };
         });
         setOrders(mappedOrders);

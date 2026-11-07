@@ -31,12 +31,29 @@ router.post('/categories/purge-food', controller.purgeFoodCategories);
 
 router.get('/orders', controller.listOrders);
 router.patch('/orders/:id/status', controller.updateOrderStatus);
+// NEW: Refund & Invoice routes
+router.post('/orders/:id/refund', controller.processRefund);
+router.post('/orders/:id/invoice', controller.generateInvoice);
+router.post('/orders/:id/invoice/send', controller.sendInvoice);
+router.get('/orders/:id/detail', controller.getOrderDetail);
+router.get('/orders/:id/invoice/download', controller.downloadInvoice);
+router.patch('/orders/bulk-status', controller.bulkUpdateOrderStatus);
 
 router.post('/notifications', controller.sendNotification);
 router.get('/notifications', controller.getNotificationHistory);
 
 router.get('/home-config', controller.getHomeConfig);
 router.put('/home-config', controller.updateHomeConfig);
+
+// Hero Config routes
+router.get('/hero-configs', controller.listHeroConfigs);
+router.get('/hero-configs/public', controller.getPublicHeroConfigs);
+router.post('/hero-configs', controller.createHeroConfig);
+router.get('/hero-configs/:id', controller.getHeroConfig);
+router.put('/hero-configs/:id', controller.updateHeroConfig);
+router.delete('/hero-configs/:id', controller.deleteHeroConfig);
+router.put('/hero-configs/reorder', controller.reorderHeroConfigs);
+router.post('/hero-configs/seed', controller.seedDefaultHeroConfigs);
 
 // Seller applications management
 router.get('/seller-applications', async (req, res) => {

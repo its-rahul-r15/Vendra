@@ -91,13 +91,13 @@ export function ProductCard({ product }) {
         </div>
 
         {/* Price & Action Row */}
-        <div className="mt-auto pt-4 flex items-center justify-between gap-2 border-t border-black/[0.05]">
-          <div className="flex flex-col">
-            <span className="text-lg sm:text-xl font-black text-[#120b0d] tracking-tight">
+        <div className="mt-auto pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 border-t border-black/[0.05]">
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-lg sm:text-xl font-black text-[#120b0d] tracking-tight truncate">
               {formatINRFromPaise(product.pricePaise)}
             </span>
             {discount > 0 ? (
-              <span className="text-[11px] text-[#9c9597] line-through font-semibold">
+              <span className="text-[11px] text-[#9c9597] line-through font-semibold truncate">
                 {formatINRFromPaise(product.mrpPaise)}
               </span>
             ) : null}
@@ -105,7 +105,7 @@ export function ProductCard({ product }) {
 
           {available ? (
             cartItem ? (
-              <div className="flex h-9 items-center gap-2.5 rounded-full bg-[#fdf2f4] px-2.5 text-[#990024] font-bold">
+              <div className="flex h-9 items-center gap-2.5 rounded-full bg-[#fdf2f4] px-2.5 text-[#990024] font-bold flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setQuantity(listingId, cartItem.quantity - 1)}
@@ -137,14 +137,14 @@ export function ProductCard({ product }) {
                     toast(err.message || 'Could not add to cart', 'error')
                   }
                 }}
-                className="flex h-9 items-center gap-2 rounded-full bg-[#120b0d] hover:bg-[#990024] px-4 text-xs font-black uppercase tracking-wider text-white active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
+                className="flex h-10 min-h-[44px] items-center gap-2 rounded-full bg-[#120b0d] hover:bg-[#990024] px-4 text-xs font-black uppercase tracking-wider text-white active:scale-95 transition-all duration-200 cursor-pointer shadow-sm flex-shrink-0"
               >
                 <ShoppingBag className="size-3.5" />
                 <span>Add</span>
               </button>
             )
           ) : (
-            <span className="text-xs font-medium text-[#9c9597]">Sold out</span>
+            <span className="text-xs font-medium text-[#9c9597] flex-shrink-0">Sold out</span>
           )}
         </div>
       </div>

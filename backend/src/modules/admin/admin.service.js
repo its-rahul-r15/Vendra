@@ -5,6 +5,7 @@ const Restaurant = require('../restaurants/restaurant.model');
 const Order = require('../orders/order.model');
 const DeliveryPartner = require('../delivery/delivery.model');
 const AuditLog = require('./auditLog.model');
+const HeroConfig = require('./heroConfig.model');
 const { ORDER_STATUS, PAYMENT_STATUS } = require('../../common/constants/orderStatuses');
 const { NotFoundError, BusinessError } = require('../../common/errors');
 const logger = require('../../config/logger');
@@ -584,6 +585,336 @@ async function updateOrderStatusAdmin(adminId, orderId, { status, reason }, meta
   return order;
 }
 
+// ===== Order Detail, Refund & Invoice =====
+
+async function getOrderDetailAdmin(orderId) {
+  const order = await Order.findById(orderId)
+    .populate('user', 'name phone email role')
+    .populate('customerId', 'name phone email role')
+    .populate('restaurant', 'name coverImage phone address')
+    .populate('vendorId', 'name images phone address')
+    .populate('deliveryPartner', 'name phone vehicle')
+    .populate('items.menuItem', 'name price images isVeg')
+    .populate('items.itemId', 'name price images isVeg')
+    .lean();
+  if (!order) throw new NotFoundError('Order not found');
+  return order;
+}
+
+async function processRefundAdmin(adminId, orderId, { amountPaise, reason, reasonCode, refundTo, notes }, meta = {}) {
+  const order = await Order.findById(orderId);
+  if (!order) throw new NotFoundError('Order not found');
+
+  order.refund = {
+    status: 'COMPLETED',
+    amountPaise: Number(amountPaise) || 0,
+    reason: reason || '',
+    reasonCode: reasonCode || 'OTHER',
+    refundTo: refundTo || 'ORIGINAL',
+    processedAt: new Date(),
+    processedBy: adminId,
+    transactionId: `REF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    notes: notes || '',
+  };
+
+  await order.save();
+
+  await logAudit({
+    adminId,
+    action: 'ADMIN_ORDER_REFUND',
+    resource: 'Order',
+    resourceId: String(orderId),
+    changes: { refund: order.refund },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return order;
+}
+
+async function generateInvoiceAdmin(adminId, orderId, { gstNumber }, meta = {}) {
+  const order = await Order.findById(orderId);
+  if (!order) throw new NotFoundError('Order not found');
+
+  const totalPaise = order.pricing?.totalPaise || (order.totalAmount ? order.totalAmount * 100 : 0);
+  const taxPaise = order.pricing?.taxPaise || 0;
+  const halfTax = Math.round(taxPaise / 2);
+
+  order.invoice = {
+    status: 'GENERATED',
+    invoiceNumber: order.invoice?.invoiceNumber || `INV-${new Date().getFullYear()}-${String(order.orderNumber || order._id).slice(-6)}`,
+    gstNumber: gstNumber || '',
+    gstBreakdown: {
+      cgstPaise: halfTax,
+      sgstPaise: halfTax,
+      igstPaise: 0,
+      totalTaxPaise: taxPaise,
+    },
+    generatedAt: new Date(),
+  };
+
+  await order.save();
+
+  await logAudit({
+    adminId,
+    action: 'ADMIN_GENERATE_INVOICE',
+    resource: 'Order',
+    resourceId: String(orderId),
+    changes: { invoice: order.invoice },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return order;
+}
+
+async function sendInvoiceAdmin(adminId, orderId, meta = {}) {
+  const order = await Order.findById(orderId);
+  if (!order) throw new NotFoundError('Order not found');
+  if (!order.invoice || order.invoice.status === 'NOT_GENERATED') {
+    throw new BusinessError('Invoice has not been generated yet');
+  }
+
+  order.invoice.status = 'SENT';
+  order.invoice.sentAt = new Date();
+  await order.save();
+
+  await logAudit({
+    adminId,
+    action: 'ADMIN_SEND_INVOICE',
+    resource: 'Order',
+    resourceId: String(orderId),
+    changes: { sentAt: order.invoice.sentAt },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return order;
+}
+
+async function bulkUpdateOrderStatusAdmin(adminId, orderIds, status, reason, meta = {}) {
+  const orderService = require('../orders/order.service');
+  const user = await User.findById(adminId);
+  const success = [];
+  const failed = [];
+
+  for (const id of orderIds) {
+    try {
+      await orderService.updateOrderStatus(id, status, user || { id: adminId, role: 'super_admin' });
+      success.push(id);
+    } catch (err) {
+      failed.push({ id, error: err.message });
+    }
+  }
+
+  await logAudit({
+    adminId,
+    action: 'ADMIN_BULK_ORDER_STATUS_UPDATE',
+    resource: 'Order',
+    resourceId: 'BULK',
+    changes: { orderIds, status, reason, successCount: success.length, failedCount: failed.length },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return { success, failed };
+}
+
+// ===== Hero Config Services =====
+
+const DEFAULT_HERO_CONFIGS = [
+  {
+    key: 'electronics',
+    name: 'Luxury Headphones',
+    description: 'Wireless noise-cancelling luxury audio',
+    themeName: 'Velvet Carmine',
+    radialGlow: 'radial-gradient(ellipse at center, #ba2249 0%, #990f30 50%, #6e0820 100%)',
+    heroPng: '/hero/headphones-wireless.png',
+    options: ['30mm', '40mm', '50mm'],
+    matchRules: {
+      nameKeywords: ['headphone', 'earphone', 'audio', 'speaker', 'earbud'],
+      tags: ['headphones', 'audio', 'electronics'],
+      categorySlug: 'electronics',
+    },
+    sortOrder: 1,
+    isActive: true,
+    isDefault: true,
+  },
+  {
+    key: 'footwear',
+    name: 'Designer Sneakers',
+    description: 'Handcrafted luxury footwear',
+    themeName: 'Imperial Emerald',
+    radialGlow: 'radial-gradient(ellipse at center, #1b4938 0%, #113627 50%, #0a2118 100%)',
+    heroPng: '/hero/luxe-sneaker.png',
+    options: ['UK 8', 'UK 9', 'UK 10'],
+    matchRules: {
+      nameKeywords: ['runner', 'shoe', 'sneaker', 'boot', 'footwear'],
+      tags: ['shoes', 'footwear', 'sneakers'],
+      categorySlug: 'shoes',
+    },
+    sortOrder: 2,
+    isActive: true,
+  },
+  {
+    key: 'cosmetics',
+    name: 'Artisan Fragrance',
+    description: 'Haute perfumery & beauty essentials',
+    themeName: 'Velvet Amber',
+    radialGlow: 'radial-gradient(ellipse at center, #6b213b 0%, #441124 50%, #200510 100%)',
+    heroPng: '/hero/luxe-perfume.png',
+    options: ['50ml', '100ml', '200ml'],
+    matchRules: {
+      nameKeywords: ['parfum', 'perfume', 'amber', 'serum', 'fragrance', 'cosmetic'],
+      tags: ['cosmetics', 'fragrance', 'beauty'],
+      categorySlug: 'cosmetics',
+    },
+    sortOrder: 3,
+    isActive: true,
+  },
+];
+
+async function listHeroConfigs(query = {}) {
+  const filter = {};
+  if (query.isActive !== undefined) filter.isActive = query.isActive === 'true';
+  const configs = await HeroConfig.find(filter).sort({ sortOrder: 1, createdAt: 1 }).lean();
+  return { configs };
+}
+
+async function getHeroConfig(id) {
+  const config = await HeroConfig.findById(id).lean();
+  if (!config) throw new NotFoundError('Hero config not found');
+  return config;
+}
+
+async function createHeroConfig(adminId, data, meta = {}) {
+  const config = await HeroConfig.create({
+    ...data,
+    createdBy: adminId,
+    updatedBy: adminId,
+  });
+
+  await logAudit({
+    adminId,
+    action: 'CREATE_HERO_CONFIG',
+    resource: 'HeroConfig',
+    resourceId: String(config._id),
+    changes: { after: config.toObject() },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return config;
+}
+
+async function updateHeroConfig(adminId, id, data, meta = {}) {
+  const config = await HeroConfig.findById(id);
+  if (!config) throw new NotFoundError('Hero config not found');
+
+  const before = config.toObject();
+  Object.assign(config, data, { updatedBy: adminId });
+  await config.save();
+
+  await logAudit({
+    adminId,
+    action: 'UPDATE_HERO_CONFIG',
+    resource: 'HeroConfig',
+    resourceId: String(config._id),
+    changes: { before, after: config.toObject() },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return config;
+}
+
+async function deleteHeroConfig(adminId, id, meta = {}) {
+  const config = await HeroConfig.findById(id);
+  if (!config) throw new NotFoundError('Hero config not found');
+
+  await HeroConfig.findByIdAndDelete(id);
+
+  await logAudit({
+    adminId,
+    action: 'DELETE_HERO_CONFIG',
+    resource: 'HeroConfig',
+    resourceId: String(id),
+    changes: { before: config.toObject() },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return true;
+}
+
+async function reorderHeroConfigs(adminId, items, meta = {}) {
+  if (Array.isArray(items)) {
+    const bulkOps = items.map((item, index) => ({
+      updateOne: {
+        filter: { _id: item.id || item._id },
+        update: { $set: { sortOrder: item.sortOrder !== undefined ? item.sortOrder : index } },
+      },
+    }));
+    if (bulkOps.length > 0) {
+      await HeroConfig.bulkWrite(bulkOps);
+    }
+  }
+
+  await logAudit({
+    adminId,
+    action: 'REORDER_HERO_CONFIGS',
+    resource: 'HeroConfig',
+    resourceId: 'BULK',
+    changes: { items },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return { success: true };
+}
+
+async function seedDefaultHeroConfigs(adminId, meta = {}) {
+  const seeded = [];
+  for (const item of DEFAULT_HERO_CONFIGS) {
+    const existing = await HeroConfig.findOne({ key: item.key });
+    if (!existing) {
+      const created = await HeroConfig.create({
+        ...item,
+        createdBy: adminId,
+        updatedBy: adminId,
+      });
+      seeded.push(created);
+    }
+  }
+
+  await logAudit({
+    adminId,
+    action: 'SEED_DEFAULT_HERO_CONFIGS',
+    resource: 'HeroConfig',
+    resourceId: 'BULK',
+    changes: { seededCount: seeded.length },
+    ipAddress: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  return { seededCount: seeded.length, configs: seeded };
+}
+
+async function getPublicHeroConfigs() {
+  const configs = await HeroConfig.getActiveThemes().lean();
+  return configs.map((c) => ({
+    _id: c._id,
+    key: c.key,
+    name: c.name,
+    themeName: c.themeName,
+    radialGlow: c.radialGlow,
+    heroPng: c.heroPng,
+    options: c.options,
+    matchRules: c.matchRules,
+    sortOrder: c.sortOrder,
+  }));
+}
+
 module.exports = {
   getDashboardOverview,
   logAudit,
@@ -603,4 +934,19 @@ module.exports = {
   getNotificationHistory,
   listOrdersAdmin,
   updateOrderStatusAdmin,
+  // New admin order functions
+  processRefundAdmin,
+  generateInvoiceAdmin,
+  sendInvoiceAdmin,
+  getOrderDetailAdmin,
+  bulkUpdateOrderStatusAdmin,
+  // Hero config functions
+  listHeroConfigs,
+  getHeroConfig,
+  createHeroConfig,
+  updateHeroConfig,
+  deleteHeroConfig,
+  reorderHeroConfigs,
+  seedDefaultHeroConfigs,
+  getPublicHeroConfigs,
 };

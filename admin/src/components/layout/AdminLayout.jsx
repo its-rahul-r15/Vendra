@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Tag,
   Image as ImageIcon,
+  Sparkles,
   History,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -51,6 +52,7 @@ export const AdminLayout = () => {
     { name: 'Products & Catalog', path: '/catalog', icon: Layers },
     { name: 'Coupons & Promo Codes', path: '/coupons', icon: Tag },
     { name: 'App Banners', path: '/banners', icon: ImageIcon },
+    { name: 'Hero Showcase', path: '/hero-config', icon: Sparkles },
     { name: 'Settings & Config', path: '/remote-config', icon: Sliders },
     { name: 'Users', path: '/users', icon: Users },
     { name: 'Push Notifications', path: '/notifications', icon: Bell },

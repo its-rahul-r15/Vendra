@@ -18,7 +18,35 @@ const apiRoutes = require('./routes');
 
 const app = express();
 
+const allowedOrigins = [
+  ...env.cors.allowedOrigins,
+  'https://vendra-vfef.vercel.app',
+  'https://vendra-rho.vercel.app',
+];
+
+function isOriginAllowed(origin) {
+  if (!origin) return true;
+  if (env.isDev) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (
+    origin.startsWith('http://localhost') ||
+    origin.startsWith('http://127.0.0.1') ||
+    origin.startsWith('http://192.168.') ||
+    origin.startsWith('http://10.') ||
+    origin.startsWith('exp://')
+  ) {
+    return true;
+  }
+  // Allow all Vercel deployment and preview URLs (*.vercel.app)
+  const host = origin.replace(/^https?:\/\//, '').split(':')[0];
+  if (host.endsWith('.vercel.app')) {
+    return true;
+  }
+  return false;
+}
+
 app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -30,18 +58,21 @@ app.use(helmet({
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
 }));
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    if (env.isDev || !origin || env.cors.allowedOrigins.includes(origin) || origin.startsWith('http://localhost') || origin.startsWith('http://192.168.') || origin.startsWith('http://10.') || origin.startsWith('exp://')) {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS: origin ${origin} not allowed`));
+      callback(null, false);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'X-Idempotency-Key'],
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

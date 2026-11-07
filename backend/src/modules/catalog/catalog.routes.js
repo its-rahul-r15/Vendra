@@ -14,6 +14,9 @@ router.get('/categories/tree', (req, res) => controller.getCategoriesTree(req, r
 router.get('/search', (req, res) => controller.search(req, res));
 router.get('/products/:listingId', (req, res) => controller.getListing(req, res));
 
+// Public hero configs for home page
+router.get('/hero-configs', (req, res) => controller.getPublicHeroConfigs(req, res));
+
 router.get(
   '/admin/products',
   authenticate,

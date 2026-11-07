@@ -9,7 +9,7 @@ class CheckoutController {
     const idempotencyKey = req.headers['x-idempotency-key'] || req.body.idempotencyKey;
 
     const result = await checkoutService.createSession({
-      userId: req.user._id,
+      userId: req.user.id,
       items,
       address,
       couponCode,

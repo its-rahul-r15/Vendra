@@ -138,14 +138,6 @@ export function Header() {
           >
             Curations
           </Link>
-          <Link
-            to="/vendor/register"
-            className={`rounded-full px-5 py-2 transition-all text-emerald-400 font-extrabold ${
-              isHeroTheme ? 'hover:text-white' : 'hover:text-emerald-700'
-            }`}
-          >
-            Sell
-          </Link>
         </nav>
 
         {/* Right Action Icons (Search, User, Cart) */}
@@ -155,7 +147,7 @@ export function Header() {
           {searchOpen ? (
             <form
               onSubmit={handleSearch}
-              className={`flex items-center rounded-full px-3.5 py-1.5 shadow-sm transition-all w-60 sm:w-72 ${
+              className={`flex items-center rounded-full px-3 py-1.5 shadow-sm transition-all w-[85vw] max-w-[260px] sm:max-w-[320px] md:max-w-[360px] lg:max-w-[400px] ${
                 isHeroTheme
                   ? 'bg-white text-[#120b0d]'
                   : 'bg-[#f4f2ee] text-[#120b0d]'

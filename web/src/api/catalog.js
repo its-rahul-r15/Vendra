@@ -55,4 +55,9 @@ export const catalogApi = {
     const { data } = unwrap(await api.get('/catalog/admin/products', { params }))
     return data?.listings || []
   },
+
+  async getPublicHeroConfigs() {
+    const { data } = unwrap(await api.get('/catalog/hero-configs'))
+    return data?.configs || []
+  },
 }

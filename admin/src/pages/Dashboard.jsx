@@ -1,5 +1,7 @@
 ﻿import React from 'react';
 ;
+import { ShoppingBag, ShieldAlert, DollarSign, TrendingUp, Bike, CloudDrizzle, ChevronRight } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
 import { formatPaise } from '../utils/formatters';
 import { Link } from 'react-router-dom';
@@ -129,7 +131,7 @@ export const Dashboard = () => {
                   : 'bg-slate-800 text-slate-400'
               }`}
             >
-              <CloudRain size={16} />
+              <CloudDrizzle size={16} />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">

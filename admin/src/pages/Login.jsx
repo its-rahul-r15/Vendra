@@ -4,7 +4,7 @@ import { Lock, Mail, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Login = () => {
-  const [email, setEmail] = useState('admin@vendra.com');
+  const [email, setEmail] = useState('admin@ftafat.com');
   const [password, setPassword] = useState('Password@123');
   const { login, loading } = useAuth();
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export const Login = () => {
   };
 
   const handleDemoLogin = async () => {
-    await login('admin@vendra.com', 'Password@123');
+    await login('admin@ftafat.com', 'Password@123');
     navigate('/');
   };
 
@@ -58,7 +58,7 @@ export const Login = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@vendra.com"
+                placeholder="admin@ftafat.com"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition"
               />
             </div>

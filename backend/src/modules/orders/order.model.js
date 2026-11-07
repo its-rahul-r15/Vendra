@@ -149,6 +149,52 @@ const orderSchema = new mongoose.Schema(
     cancellationReasonId: { type: mongoose.Schema.Types.ObjectId, ref: 'CancellationReason' },
     specialInstructions: { type: String, maxlength: 300 },
     version: { type: Number, default: 1 },
+
+    // 4. Invoice Track (NEW)
+    invoice: {
+      status: {
+        type: String,
+        enum: ['NOT_GENERATED', 'GENERATED', 'SENT', 'PAID', 'VOID'],
+        default: 'NOT_GENERATED',
+        index: true,
+      },
+      invoiceNumber: { type: String, index: true },
+      gstNumber: { type: String },
+      gstBreakdown: {
+        cgstPaise: { type: Number, default: 0 },
+        sgstPaise: { type: Number, default: 0 },
+        igstPaise: { type: Number, default: 0 },
+        totalTaxPaise: { type: Number, default: 0 },
+      },
+      generatedAt: { type: Date },
+      sentAt: { type: Date },
+      pdfUrl: { type: String },
+    },
+
+    // 5. Refund Track (NEW)
+    refund: {
+      status: {
+        type: String,
+        enum: ['NONE', 'PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'PARTIALLY_REFUNDED'],
+        default: 'NONE',
+        index: true,
+      },
+      amountPaise: { type: Number, default: 0 },
+      reason: { type: String },
+      reasonCode: {
+        type: String,
+        enum: ['QUALITY', 'LATE_DELIVERY', 'WRONG_ITEM', 'CUSTOMER_REQUEST', 'CANCELLED_BEFORE_PREP', 'OUT_OF_STOCK', 'DAMAGED', 'OTHER'],
+      },
+      refundTo: {
+        type: String,
+        enum: ['ORIGINAL', 'WALLET', 'BANK_TRANSFER'],
+        default: 'ORIGINAL',
+      },
+      processedAt: { type: Date },
+      processedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      transactionId: { type: String },
+      notes: { type: String },
+    },
   },
   {
     timestamps: true,
@@ -167,6 +213,11 @@ orderSchema.index({ vendorId: 1, orderStatus: 1, createdAt: -1 });
 orderSchema.index({ customerId: 1, createdAt: -1 });
 orderSchema.index({ checkoutId: 1 });
 orderSchema.index({ 'payment.status': 1, orderStatus: 1 });
+// New indexes for invoice and refund
+orderSchema.index({ 'invoice.status': 1, createdAt: -1 });
+orderSchema.index({ 'invoice.invoiceNumber': 1 });
+orderSchema.index({ 'refund.status': 1, createdAt: -1 });
+orderSchema.index({ 'refund.transactionId': 1 });
 
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;

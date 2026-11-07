@@ -15,6 +15,7 @@ import { Users } from './pages/Users';
 import { Notifications } from './pages/Notifications';
 import { MasterData } from './pages/MasterData';
 import { AuditLogs } from './pages/AuditLogs';
+import { HeroConfig } from './pages/HeroConfig';
 import { Login } from './pages/Login';
 
 const ProtectedRoute = ({ children }) => {
@@ -47,6 +48,7 @@ export default function App() {
                 <Route path="catalog" element={<Catalog />} />
                 <Route path="coupons" element={<Coupons />} />
                 <Route path="banners" element={<Banners />} />
+                <Route path="hero-config" element={<HeroConfig />} />
                 <Route path="remote-config" element={<RemoteConfig />} />
                 <Route path="users" element={<Users />} />
                 <Route path="notifications" element={<Notifications />} />

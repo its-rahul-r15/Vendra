@@ -22,45 +22,6 @@ import { useUiStore } from '@/stores/ui.store'
 import { formatINRFromPaise } from '@/utils/money'
 import { resolveImage } from '@/utils/media'
 
-// Hero showcase matching configuration to link backend product data with transparent luxury PNGs
-const HERO_CONFIG = [
-  {
-    // Match Headphones / Electronics from backend
-    matches: (item) =>
-      item.name?.toLowerCase().includes('headphone') ||
-      item.tags?.includes('headphones') ||
-      item.categoryId?.slug === 'electronics',
-    radialGlow: 'radial-gradient(ellipse at center, #ba2249 0%, #990f30 50%, #6e0820 100%)',
-    themeName: 'Velvet Carmine',
-    heroPng: '/hero/headphones-wireless.png',
-    options: ['30mm', '40mm', '50mm'],
-  },
-  {
-    // Match Shoes / Footwear from backend
-    matches: (item) =>
-      item.name?.toLowerCase().includes('runner') ||
-      item.name?.toLowerCase().includes('shoe') ||
-      item.name?.toLowerCase().includes('sneaker') ||
-      item.categoryId?.slug === 'shoes',
-    radialGlow: 'radial-gradient(ellipse at center, #1b4938 0%, #113627 50%, #0a2118 100%)',
-    themeName: 'Imperial Emerald',
-    heroPng: '/hero/luxe-sneaker.png',
-    options: ['UK 8', 'UK 9', 'UK 10'],
-  },
-  {
-    // Match Cosmetics / Luxury Fragrance from backend
-    matches: (item) =>
-      item.name?.toLowerCase().includes('parfum') ||
-      item.name?.toLowerCase().includes('amber') ||
-      item.name?.toLowerCase().includes('serum') ||
-      item.categoryId?.slug === 'cosmetics',
-    radialGlow: 'radial-gradient(ellipse at center, #6b213b 0%, #441124 50%, #200510 100%)',
-    themeName: 'Velvet Amber',
-    heroPng: '/hero/luxe-perfume.png',
-    options: ['50ml', '100ml', '200ml'],
-  },
-]
-
 const ECOM_VALUE_PROPS = [
   {
     icon: Truck,
@@ -88,6 +49,52 @@ const ECOM_VALUE_PROPS = [
   },
 ]
 
+// Default fallback configs (used if API fails)
+const DEFAULT_HERO_CONFIGS = [
+  {
+    _id: 'electronics',
+    key: 'electronics',
+    themeName: 'Velvet Carmine',
+    radialGlow: 'radial-gradient(ellipse at center, #ba2249 0%, #990f30 50%, #6e0820 100%)',
+    heroPng: '/hero/headphones-wireless.png',
+    options: ['30mm', '40mm', '50mm'],
+    matchRules: {
+      nameKeywords: ['headphone', 'earphone', 'audio', 'speaker', 'earbud'],
+      tags: ['headphones', 'audio', 'electronics'],
+      categorySlug: 'electronics',
+    },
+    sortOrder: 1,
+  },
+  {
+    _id: 'footwear',
+    key: 'footwear',
+    themeName: 'Imperial Emerald',
+    radialGlow: 'radial-gradient(ellipse at center, #1b4938 0%, #113627 50%, #0a2118 100%)',
+    heroPng: '/hero/luxe-sneaker.png',
+    options: ['UK 8', 'UK 9', 'UK 10'],
+    matchRules: {
+      nameKeywords: ['runner', 'shoe', 'sneaker', 'boot', 'footwear'],
+      tags: ['shoes', 'footwear', 'sneakers'],
+      categorySlug: 'shoes',
+    },
+    sortOrder: 2,
+  },
+  {
+    _id: 'cosmetics',
+    key: 'cosmetics',
+    themeName: 'Velvet Amber',
+    radialGlow: 'radial-gradient(ellipse at center, #6b213b 0%, #441124 50%, #200510 100%)',
+    heroPng: '/hero/luxe-perfume.png',
+    options: ['50ml', '100ml', '200ml'],
+    matchRules: {
+      nameKeywords: ['parfum', 'perfume', 'amber', 'serum', 'fragrance', 'cosmetic'],
+      tags: ['cosmetics', 'fragrance', 'beauty'],
+      categorySlug: 'cosmetics',
+    },
+    sortOrder: 3,
+  },
+]
+
 export function HomePage() {
   const navigate = useNavigate()
   const [categories, setCategories] = useState([])
@@ -95,6 +102,7 @@ export function HomePage() {
   const [shops, setShops] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [heroConfigs, setHeroConfigs] = useState([])
 
   // Active slide index & interactive option
   const [activeIdx, setActiveIdx] = useState(0)
@@ -112,10 +120,11 @@ export function HomePage() {
       setLoading(true)
       setError(null)
       try {
-        const [categoryList, productRes, nearbyRes] = await Promise.allSettled([
+        const [categoryList, productRes, nearbyRes, heroConfigRes] = await Promise.allSettled([
           catalogApi.categories(),
           catalogApi.products({ limit: 24, sort: 'newest' }),
           restaurantsApi.nearby({ lat: 28.6139, lng: 77.209, radius: 25, limit: 6 }),
+          catalogApi.getPublicHeroConfigs(), // Fetch hero configs from API
         ])
 
         if (!active) return
@@ -129,8 +138,20 @@ export function HomePage() {
         if (nearbyRes.status === 'fulfilled') {
           setShops(nearbyRes.value?.restaurants || [])
         }
+        if (heroConfigRes.status === 'fulfilled') {
+          const resVal = heroConfigRes.value
+          const fetchedConfigs = Array.isArray(resVal)
+            ? resVal
+            : (resVal?.configs || resVal?.data?.configs || [])
+          // Sort by sortOrder
+          const sortedConfigs = [...fetchedConfigs].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+          setHeroConfigs(sortedConfigs.length > 0 ? sortedConfigs : DEFAULT_HERO_CONFIGS)
+        } else {
+          setHeroConfigs(DEFAULT_HERO_CONFIGS)
+        }
       } catch (err) {
         if (active) setError(err.message || 'Failed to load marketplace catalog')
+        setHeroConfigs(DEFAULT_HERO_CONFIGS)
       } finally {
         if (active) setLoading(false)
       }
@@ -144,12 +165,12 @@ export function HomePage() {
 
   // Build hero showcase linking live backend database listings with luxury transparent PNG assets
   const heroShowcase = useMemo(() => {
-    if (!products.length) return []
+    if (!products.length || !heroConfigs.length) return []
 
-    return HERO_CONFIG.map((cfg, idx) => {
+    return heroConfigs.map((cfg, idx) => {
       // Find matching live product listing from backend
       const found =
-        products.find((p) => p.itemId && cfg.matches(p.itemId)) ||
+        products.find((p) => p.itemId && matchProduct(p.itemId, cfg.matchRules)) ||
         products[idx] ||
         products[0]
 
@@ -169,7 +190,31 @@ export function HomePage() {
         image: cfg.heroPng,
       }
     })
-  }, [products])
+  }, [products, heroConfigs])
+
+  // Match product against config rules (client-side fallback)
+  function matchProduct(item, rules) {
+    if (!item || !rules) return false
+    
+    const name = (item.name || '').toLowerCase()
+    const tags = (item.tags || []).map(t => t.toLowerCase())
+    const categorySlug = item.categoryId?.slug?.toLowerCase()
+    
+    // Check name keywords
+    if (rules.nameKeywords?.length) {
+      if (rules.nameKeywords.some(kw => name.includes(kw))) return true
+    }
+    
+    // Check tags
+    if (rules.tags?.length) {
+      if (rules.tags.some(tag => tags.includes(tag))) return true
+    }
+    
+    // Check category
+    if (rules.categorySlug && categorySlug === rules.categorySlug) return true
+    
+    return false
+  }
 
   // Sync selected option when active hero changes
   useEffect(() => {
@@ -255,7 +300,7 @@ export function HomePage() {
           style={{
             background: current.radialGlow,
           }}
-          className="relative min-h-screen w-full text-white flex flex-col justify-between pt-24 pb-8 sm:pb-12 px-6 sm:px-12 lg:px-16 transition-all duration-700 overflow-hidden select-none"
+          className="relative min-h-screen w-full text-white flex flex-col justify-between pt-20 pb-6 sm:pb-10 px-4 sm:px-8 lg:px-16 transition-all duration-700 overflow-hidden select-none"
         >
           {/* Top Sub-Navigation (‹ Back | Categories / Products | Slide Counter) */}
           <div className="relative z-10 flex items-center justify-between text-xs font-semibold text-white/80 max-w-7xl mx-auto w-full pt-2">
@@ -264,7 +309,7 @@ export function HomePage() {
             </Link>
 
             {/* Center Slide Pills */}
-            <div className="flex items-center gap-2 text-xs">
+            <div className="hidden sm:flex items-center gap-2 text-xs">
               {heroShowcase.map((prod, idx) => (
                 <button
                   key={prod._id || idx}
@@ -286,15 +331,15 @@ export function HomePage() {
           </div>
 
           {/* Center Stage: Left Product Title | Centered BIG Hero Product | Right Options */}
-          <div className="relative z-10 my-auto py-4 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 max-w-7xl mx-auto w-full">
+          <div className="relative z-10 my-auto py-4 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 sm:gap-8 max-w-7xl mx-auto w-full">
             
             {/* Left: Product Name & Specs */}
             <div
-              className={`lg:col-span-4 space-y-4 text-left transition-all duration-300 ${
+              className={`lg:col-span-4 space-y-3 text-left transition-all duration-300 ${
                 isTransitioning ? 'opacity-0 -translate-x-6' : 'opacity-100 translate-x-0'
               }`}
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] text-white">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[1.05] text-white">
                 {current.name}
               </h1>
               <p className="text-sm font-bold text-white/80 tracking-wide line-clamp-2">
@@ -307,7 +352,7 @@ export function HomePage() {
 
             {/* Center: BIG LUXURY TRANSPARENT PRODUCT */}
             <div className="lg:col-span-4 flex justify-center items-center py-2">
-              <div className="relative size-72 sm:size-88 lg:size-[400px] flex items-center justify-center">
+              <div className="relative size-56 sm:size-72 lg:size-88 xl:size-[400px] flex items-center justify-center">
                 <img
                   key={current._id}
                   src={resolveImage(current.image)}
@@ -352,16 +397,16 @@ export function HomePage() {
           </div>
 
           {/* Bottom Bar: Price & Action Pill Controls */}
-          <div className="relative z-10 pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-end justify-between gap-6 max-w-7xl mx-auto w-full">
+          <div className="relative z-10 pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6 max-w-7xl mx-auto w-full">
             {/* Trust Statement */}
-            <div className="max-w-xs text-[11px] leading-relaxed text-white/70 font-medium">
+            <div className="max-w-xs text-[11px] leading-relaxed text-white/70 font-medium hidden sm:block">
               We work in close partnership with verified independent creators and certified global suppliers.
             </div>
 
-            {/* Price & Action Pill Controls */}
-            <div className="flex items-center gap-6 sm:gap-8">
-              <div className="flex flex-col text-right sm:text-left">
-                <span className="text-3xl sm:text-5xl font-black tracking-tight text-white">
+            {/* Price & Action Pill Controls — stacked on mobile, row on sm+ */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+              <div className="flex flex-col text-center sm:text-left">
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
                   {formatINRFromPaise(current.pricePaise * heroQuantity)}
                 </span>
                 {current.mrpPaise > current.pricePaise && (
@@ -372,8 +417,8 @@ export function HomePage() {
               </div>
 
               {/* Stepper [ - 1 + ] & Pill 'Buy Now' */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 bg-black/25 px-4 py-2.5 rounded-full text-white font-bold backdrop-blur-md">
+              <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center gap-2 bg-black/25 px-3 py-2 rounded-full text-white font-bold backdrop-blur-md">
                   <button
                     onClick={() => setHeroQuantity(Math.max(1, heroQuantity - 1))}
                     className="hover:text-white/70 transition cursor-pointer"
@@ -393,7 +438,7 @@ export function HomePage() {
 
                 <button
                   onClick={handleHeroBuy}
-                  className="flex items-center gap-2 rounded-full bg-white text-[#0f172a] hover:bg-slate-100 px-8 py-3 text-sm font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 rounded-full bg-white text-[#0f172a] hover:bg-slate-100 px-6 py-2.5 text-sm font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <ShoppingBag className="size-4" />
                   <span>Buy Now</span>
@@ -407,7 +452,7 @@ export function HomePage() {
             onClick={scrollToContent}
             className="mx-auto mt-2 flex items-center gap-1.5 text-[11px] font-bold text-white/60 hover:text-white transition cursor-pointer animate-bounce"
           >
-            <span>Scroll to explore full catalog</span>
+            <span>Scroll to explore</span>
             <ChevronDown className="size-4" />
           </button>
 
@@ -419,13 +464,18 @@ export function HomePage() {
         
         {/* Value Proposition Bar — Architectural, Clean, Borderless */}
         <section className="container-app">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-6 border-b border-black/[0.06]">
+          {/* Horizontal scroll on mobile, grid on desktop */}
+          <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 py-6 border-b border-black/[0.06] -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory sm:snap-none [&::-webkit-scrollbar]:hidden [-webkit-overflow-scrolling:touch]">
+            <style>{`
+              .overflow-x-auto::-webkit-scrollbar { display: none; }
+              .overflow-x-auto { scrollbar-width: none; }
+            `}</style>
             {ECOM_VALUE_PROPS.map((prop) => {
               const Icon = prop.icon
               return (
                 <div
                   key={prop.title}
-                  className="flex items-start gap-4 group"
+                  className="flex flex-shrink-0 w-[72%] sm:w-auto items-start gap-4 group snap-center"
                 >
                   <div className="size-10 rounded-xl bg-black/[0.03] group-hover:bg-[#990024]/10 transition-colors flex items-center justify-center shrink-0">
                     <Icon className="size-5 text-[#120b0d] group-hover:text-[#990024] transition-colors stroke-[2]" />
@@ -517,7 +567,7 @@ export function HomePage() {
           </div>
 
           {products.length > 0 ? (
-            <div className="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {products.map((product) => (
                 <ProductCard key={product._id || product.id} product={product} />
               ))}
@@ -531,7 +581,7 @@ export function HomePage() {
         </section>
 
         {/* Independent Verified Stores */}
-        <section className="container-app pb-20">
+        <section className="container-app pb-16 sm:pb-20">
           <div className="flex items-center justify-between pb-4">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-[#120b0d] tracking-tight">
@@ -549,7 +599,7 @@ export function HomePage() {
             </Link>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {shops.slice(0, 6).map((shop) => (
               <Link
                 key={shop._id || shop.id}
@@ -574,14 +624,14 @@ export function HomePage() {
                   ) : null}
                 </div>
 
-                <div className="p-5 flex flex-1 flex-col">
+                <div className="p-4 sm:p-5 flex flex-1 flex-col">
                   <h3 className="text-base font-bold text-[#120b0d] group-hover:text-[#990024] transition-colors line-clamp-1">
                     {shop.name}
                   </h3>
                   <p className="mt-1 line-clamp-1 text-xs text-[#5c5658] font-medium">
                     {Array.isArray(shop.cuisines) ? shop.cuisines.join(' • ') : shop.vertical || 'Independent Merchant'}
                   </p>
-                  <div className="mt-auto pt-4 flex items-center justify-between text-xs font-semibold text-[#5c5658]">
+                  <div className="mt-auto pt-3 sm:pt-4 flex items-center justify-between text-xs font-semibold text-[#5c5658]">
                     <span>{shop.address?.city || 'Verified Seller'}</span>
                     <span className="text-[#990024] font-bold">Visit Store →</span>
                   </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Sliders,
   ShieldAlert,
-  CloudRain,
+  CloudDrizzle,
   Smartphone,
   Save,
   RotateCcw,

@@ -50,40 +50,18 @@ class CatalogController {
   }
 
   async deleteCommerceProduct(req, res) {
-    const result = await catalogService.deleteCommerceProduct(req.params.listingId, req.user);
-    return res.json(formatResponse(result));
-  }
-
-  async createMasterItem(req, res) {
-    const item = await catalogService.createMasterItem(req.body, req.user);
-    return res.status(201).json(formatResponse({ item }));
-  }
-
-  async createVendorItem(req, res) {
-    const result = await catalogService.createVendorItem(req.body, req.user);
-    return res.status(201).json(formatResponse(result));
-  }
-
-  async createListing(req, res) {
-    const listing = await catalogService.createListing(req.body, req.user);
-    return res.status(201).json(formatResponse({ listing }));
-  }
-
-  async updateListing(req, res) {
-    const { version } = req.body;
-    const listing = await catalogService.updateListing(
-      req.params.id,
-      req.body,
-      req.user,
-      version !== undefined ? parseInt(version, 10) : null
-    );
-    return res.json(formatResponse({ listing }));
+    await catalogService.deleteCommerceProduct(req.params.listingId, req.user);
+    return res.json(formatResponse({ success: true }));
   }
 
   async getCategoriesTree(req, res) {
-    const { vertical } = req.query;
-    const tree = await catalogService.getCategoriesTree({ vertical });
-    return res.json(formatResponse({ categories: tree }));
+    const categories = await catalogService.getCategoriesTree();
+    return res.json(formatResponse({ categories }));
+  }
+
+  async createCategory(req, res) {
+    const category = await catalogService.createCategory(req.body, req.user);
+    return res.status(201).json(formatResponse({ category }));
   }
 
   async updateCategory(req, res) {
@@ -101,6 +79,30 @@ class CatalogController {
       return res.json(formatResponse(result));
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  // Public hero configs for home page
+  async getPublicHeroConfigs(req, res) {
+    try {
+      const HeroConfig = require('../admin/heroConfig.model');
+      const configs = await HeroConfig.getActiveThemes().lean();
+
+      const publicConfigs = configs.map(config => ({
+        _id: config._id,
+        key: config.key,
+        name: config.name,
+        themeName: config.themeName,
+        radialGlow: config.radialGlow,
+        heroPng: config.heroPng,
+        options: config.options,
+        matchRules: config.matchRules,
+        sortOrder: config.sortOrder,
+      }));
+
+      return res.json(formatResponse({ configs: publicConfigs }));
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Failed to fetch hero configs' });
     }
   }
 }
