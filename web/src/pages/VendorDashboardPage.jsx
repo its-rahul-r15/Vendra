@@ -231,14 +231,18 @@ export function VendorDashboardPage() {
       const res = await restaurantsApi.create({
         name: newStoreForm.name.trim(),
         description: newStoreForm.description.trim(),
-        cuisineType: newStoreForm.cuisineType.trim(),
-        vertical: newStoreForm.vertical,
+        cuisineType: newStoreForm.cuisineType.trim() || 'Multi-category retail',
+        cuisines: [newStoreForm.cuisineType.trim() || 'Retail & Lifestyle'],
+        vertical: newStoreForm.vertical || 'commerce',
+        location: {
+          type: 'Point',
+          coordinates: [77.209, 28.6139],
+        },
         address: {
           line1: newStoreForm.address.line1.trim() || 'Main Market',
           city: newStoreForm.address.city.trim() || 'New Delhi',
           state: newStoreForm.address.state.trim() || 'Delhi',
           pincode: newStoreForm.address.pincode.trim() || '110001',
-          location: { type: 'Point', coordinates: [77.209, 28.6139] },
         },
       })
       toast('Store created successfully!', 'success')

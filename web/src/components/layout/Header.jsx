@@ -1,9 +1,32 @@
+import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Search, ShoppingBag, UserRound, Tag, Store, Layers, LayoutDashboard } from 'lucide-react'
+import {
+  Search,
+  ShoppingBag,
+  UserRound,
+  Store,
+  Layers,
+  LayoutDashboard,
+  Gift,
+  Heart,
+  ChevronDown,
+  Sparkles,
+  Compass,
+} from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore } from '@/stores/cart.store'
 import { cn } from '@/utils/cn'
 import { Button } from '@/components/ui/Button'
+
+const SUB_NAV_LINKS = [
+  { label: 'Gifts & Hampers', path: '/categories?categoryId=gifts-festive-hampers', icon: Gift },
+  { label: 'Fashion & Apparel', path: '/categories?vertical=commerce' },
+  { label: 'Home & Living', path: '/categories?categoryId=home-living-decor' },
+  { label: 'Artisan Kitchens', path: '/shops?vertical=food' },
+  { label: 'Organic Pantry', path: '/categories?vertical=grocery' },
+  { label: 'Jewellery', path: '/categories?categoryId=jewellery-watches' },
+  { label: 'Deals of the Week', path: '/search?filter=deals' },
+]
 
 export function Header() {
   const navigate = useNavigate()
@@ -11,133 +34,71 @@ export function Header() {
   const vendorStatus = useAuthStore((s) => s.vendorStatus)
   const itemCount = useCartStore((s) => s.itemCount)
 
-  const isSeller = ['restaurant_owner', 'merchant_owner'].includes(user?.role) || vendorStatus === 'active_seller'
+  const [query, setQuery] = useState('')
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
+
+  const isSeller =
+    ['restaurant_owner', 'merchant_owner'].includes(user?.role) ||
+    vendorStatus === 'active_seller'
+
+  function handleSearch(e) {
+    e.preventDefault()
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query.trim())}`)
+    } else {
+      navigate('/search')
+    }
+  }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#e7e5df] bg-[#faf9f5]/95 backdrop-blur-md">
-      <div className="container-app flex h-18 items-center justify-between gap-4">
-        {/* Brand Logo */}
-        <Link to="/" className="flex shrink-0 items-center gap-2">
-          <span className="font-sans text-2xl font-black tracking-tight text-[#0a0a0a]">
-            Vendra
-          </span>
-          <span className="hidden sm:inline-block rounded-full bg-[#121212] px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase text-white">
-            Marketplace
-          </span>
-        </Link>
+    <header className="sticky top-0 z-50 border-b border-[#e7e5df] bg-[#ffffff]/98 backdrop-blur-md">
+      {/* ── Main Header Row ── */}
+      <div className="container-app flex h-20 items-center justify-between gap-4 md:gap-6">
+        {/* Brand Logo & Categories Button (Inspired by Etsy reference) */}
+        <div className="flex items-center gap-4 shrink-0">
+          <Link to="/" className="flex items-center gap-1.5">
+            <span className="font-serif italic text-3xl md:text-4xl font-black tracking-tight text-[#0a0a0a]">
+              Vendra
+            </span>
+          </Link>
 
-        {/* Global Search Bar */}
-        <button
-          type="button"
-          onClick={() => navigate('/search')}
-          className="hidden md:flex h-11 min-w-[260px] max-w-md flex-1 items-center gap-3 rounded-xl border border-[#e7e5df] bg-white px-4 text-left text-sm text-[#737069] transition hover:border-[#0a0a0a]"
-        >
-          <Search className="size-4 shrink-0 text-[#737069]" />
-          <span className="truncate">Search products, stores & departments...</span>
-        </button>
-
-        {/* Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1">
-          <NavLink
+          <Link
             to="/categories"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition',
-                isActive
-                  ? 'bg-[#121212] text-white'
-                  : 'text-[#42403c] hover:bg-black/5 hover:text-[#121212]',
-              )
-            }
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold text-[#0a0a0a] transition hover:bg-[#f4f2ec]"
           >
             <Layers className="size-4" />
             <span>Categories</span>
-          </NavLink>
+          </Link>
+        </div>
 
-          <NavLink
-            to="/shops"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition',
-                isActive
-                  ? 'bg-[#121212] text-white'
-                  : 'text-[#42403c] hover:bg-black/5 hover:text-[#121212]',
-              )
-            }
+        {/* Big Rounded Search Input with Pill Submit Button */}
+        <form
+          onSubmit={handleSearch}
+          className="flex flex-1 max-w-2xl items-center rounded-full border border-[#0a0a0a] bg-white p-1 shadow-sm transition focus-within:ring-2 focus-within:ring-[#0a0a0a]/15"
+        >
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search for unique items, independent shops, gifts..."
+            className="w-full bg-transparent pl-4 pr-2 text-sm md:text-base text-[#0a0a0a] outline-none placeholder:text-[#8c887f]"
+          />
+          <button
+            type="submit"
+            aria-label="Search marketplace"
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-[#0a0a0a] text-white transition hover:bg-[#262626]"
           >
-            <Store className="size-4" />
-            <span>Shops</span>
-          </NavLink>
+            <Search className="size-4.5" />
+          </button>
+        </form>
 
-          <NavLink
-            to="/search"
-            className={({ isActive }) =>
-              cn(
-                'rounded-lg px-3.5 py-2 text-sm font-medium transition',
-                isActive
-                  ? 'bg-[#121212] text-white'
-                  : 'text-[#42403c] hover:bg-black/5 hover:text-[#121212]',
-              )
-            }
-          >
-            Explore
-          </NavLink>
-
-          <NavLink
-            to="/search?filter=deals"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-medium transition',
-                isActive
-                  ? 'bg-[#121212] text-white'
-                  : 'text-[#42403c] hover:bg-black/5 hover:text-[#121212]',
-              )
-            }
-          >
-            <Tag className="size-3.5 text-[#a37237]" />
-            <span>Deals</span>
-          </NavLink>
-
-          {user ? (
-            <NavLink
-              to="/orders"
-              className={({ isActive }) =>
-                cn(
-                  'rounded-lg px-3.5 py-2 text-sm font-medium transition',
-                  isActive
-                    ? 'bg-[#121212] text-white'
-                    : 'text-[#42403c] hover:bg-black/5 hover:text-[#121212]',
-                )
-              }
-            >
-              Orders
-            </NavLink>
-          ) : null}
-
-          {isSeller ? (
-            <NavLink
-              to="/vendor/dashboard"
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition',
-                  isActive
-                    ? 'bg-[#0a0a0a] text-white'
-                    : 'text-[#121212] hover:bg-black/5',
-                )
-              }
-            >
-              <LayoutDashboard className="size-4 text-[#a37237]" />
-              <span className="font-bold">Vendor Panel</span>
-            </NavLink>
-          ) : null}
-        </nav>
-
-        {/* Right CTA Actions */}
-        <div className="flex items-center gap-3">
-          {/* Vendor Register / Portal Button */}
+        {/* Right Actions: Seller CTA, Wishlist/Heart, Cart, Sign In */}
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          {/* Vendor Portal CTA */}
           {isSeller ? (
             <Link
               to="/vendor/dashboard"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#0a0a0a] bg-[#0a0a0a] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[#262626]"
+              className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-[#0a0a0a] bg-[#0a0a0a] px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#262626]"
             >
               <LayoutDashboard className="size-3.5" />
               <span>Vendor Panel</span>
@@ -145,44 +106,52 @@ export function Header() {
           ) : (
             <Link
               to="/vendor/register"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#121212] bg-white px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#121212] transition hover:bg-[#121212] hover:text-white"
+              className="hidden xl:inline-flex items-center gap-1.5 rounded-full border border-[#e7e5df] px-3.5 py-1.5 text-xs font-semibold text-[#4a4740] transition hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
             >
-              <span>Register as Vendor</span>
+              <span>Sell on Vendra</span>
             </Link>
           )}
 
-          {/* Cart Trigger */}
+          {/* Quick Shops Directory Link */}
+          <Link
+            to="/shops"
+            className="hidden md:inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-[#4a4740] hover:text-[#0a0a0a] hover:bg-[#f4f2ec]"
+          >
+            <Store className="size-4" />
+            <span>Shops</span>
+          </Link>
+
+          {/* Cart Icon Button */}
           <Link
             to="/cart"
             aria-label="View Shopping Cart"
-            className="relative flex h-11 items-center gap-2 rounded-xl border border-[#e7e5df] bg-white px-3.5 text-sm font-medium text-[#121212] transition hover:border-[#121212]"
+            className="relative grid size-10 place-items-center rounded-full hover:bg-[#f4f2ec] transition text-[#0a0a0a]"
           >
-            <ShoppingBag className="size-4.5 text-[#121212]" />
-            <span className="hidden sm:inline">Cart</span>
+            <ShoppingBag className="size-5.5" />
             {itemCount > 0 ? (
-              <span className="absolute -right-1.5 -top-1.5 grid min-w-5 place-items-center rounded-full bg-[#0a0a0a] px-1.5 text-[11px] font-bold text-white shadow-sm">
+              <span className="absolute 0 top-0.5 right-0.5 grid min-w-4.5 h-4.5 place-items-center rounded-full bg-[#0a0a0a] px-1 text-[10px] font-bold text-white">
                 {itemCount}
               </span>
             ) : null}
           </Link>
 
-          {/* User Auth Trigger */}
+          {/* User Sign In / Profile */}
           {user ? (
             <Link
               to="/account"
-              className="flex h-11 items-center gap-2 rounded-xl bg-[#0a0a0a] px-4 text-sm font-medium text-white transition hover:bg-[#262626]"
+              className="flex items-center gap-2 rounded-full border border-[#e7e5df] bg-white px-3.5 py-1.5 text-sm font-medium text-[#0a0a0a] hover:border-[#0a0a0a] transition"
             >
               <UserRound className="size-4" />
-              <span className="max-w-[110px] truncate">
+              <span className="max-w-[100px] truncate">
                 {user.name?.split(' ')[0] || 'Account'}
               </span>
             </Link>
           ) : (
             <Button
-              size="md"
-              variant="primary"
+              variant="outline"
+              size="sm"
               onClick={() => navigate('/login')}
-              className="h-11"
+              className="rounded-full px-4 text-xs font-bold uppercase tracking-wider h-9"
             >
               Sign in
             </Button>
@@ -190,41 +159,39 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Quick Category Bar */}
-      <div className="flex lg:hidden items-center gap-2 border-t border-[#e7e5df] px-4 py-2 overflow-x-auto hide-scrollbar bg-[#faf9f5]">
-        <Link
-          to="/categories"
-          className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold bg-white border border-[#e7e5df] text-[#121212]"
-        >
-          Categories
-        </Link>
-        <Link
-          to="/shops"
-          className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold bg-white border border-[#e7e5df] text-[#121212]"
-        >
-          Shops
-        </Link>
-        <Link
-          to="/search"
-          className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold bg-white border border-[#e7e5df] text-[#121212]"
-        >
-          Explore
-        </Link>
-        {isSeller ? (
+      {/* ── Sub-Navigation Department Ribbon (Matching Etsy Reference) ── */}
+      <div className="border-t border-[#e7e5df] bg-[#ffffff]">
+        <div className="container-app flex items-center justify-between gap-6 overflow-x-auto py-2.5 hide-scrollbar text-xs md:text-sm font-medium text-[#4a4740]">
+          <div className="flex items-center gap-6 shrink-0">
+            {SUB_NAV_LINKS.map((item, idx) => {
+              const Icon = item.icon
+              return (
+                <NavLink
+                  key={idx}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-1.5 py-1 whitespace-nowrap transition hover:text-[#0a0a0a]',
+                      isActive
+                        ? 'font-bold text-[#0a0a0a] border-b-2 border-[#0a0a0a]'
+                        : 'text-[#5a574f]',
+                    )
+                  }
+                >
+                  {Icon ? <Icon className="size-3.5 text-[#0a0a0a]" /> : null}
+                  <span>{item.label}</span>
+                </NavLink>
+              )
+            })}
+          </div>
+
           <Link
-            to="/vendor/dashboard"
-            className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold bg-[#0a0a0a] text-white ml-auto"
+            to="/categories"
+            className="shrink-0 text-xs font-bold uppercase tracking-wider text-[#0a0a0a] hover:underline"
           >
-            Vendor Panel
+            All Departments →
           </Link>
-        ) : (
-          <Link
-            to="/vendor/register"
-            className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold bg-[#0a0a0a] text-white ml-auto"
-          >
-            Sell
-          </Link>
-        )}
+        </div>
       </div>
     </header>
   )

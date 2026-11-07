@@ -37,8 +37,33 @@ async function invalidateCache(pattern) {
 }
 
 async function createRestaurant(ownerId, data) {
+  // Extract or default location coordinates to avoid Mongoose validation failure
+  let location = data.location;
+  if (!location || !Array.isArray(location.coordinates) || location.coordinates.length !== 2) {
+    if (data.address?.location && Array.isArray(data.address.location.coordinates)) {
+      location = { type: 'Point', coordinates: data.address.location.coordinates.map(Number) };
+    } else if (Array.isArray(data.coordinates) && data.coordinates.length === 2) {
+      location = { type: 'Point', coordinates: data.coordinates.map(Number) };
+    } else if (data.lat && data.lng) {
+      location = { type: 'Point', coordinates: [parseFloat(data.lng), parseFloat(data.lat)] };
+    } else {
+      // Default to standard capital coordinates (New Delhi: [lng, lat])
+      location = { type: 'Point', coordinates: [77.209, 28.6139] };
+    }
+  }
+
+  // Ensure address object is cleanly structured
+  const address = data.address || {
+    line1: data.line1 || 'Main Market',
+    city: data.city || 'New Delhi',
+    state: data.state || 'Delhi',
+    pincode: data.pincode || '110001',
+  };
+
   const restaurant = await Restaurant.create({
     ...data,
+    address,
+    location,
     owner: ownerId,
     isActive: true,
     isApproved: true,

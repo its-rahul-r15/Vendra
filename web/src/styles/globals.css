@@ -1,34 +1,61 @@
 @import "tailwindcss";
 
-@theme {
-  --font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-serif: "Newsreader", "Playfair Display", Georgia, serif;
+/* ── Centralized Color & Design Tokens (Black & Warm White Theme) ── */
+:root {
+  /* Fonts */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Newsreader', 'Playfair Display', Georgia, serif;
 
-  /* Super Premium Minimalist Black & Warm White Palette (Light Mode Only) */
-  --color-brand: #0f0f0f;
+  /* Theme Tokens — Standardized Black & Warm White */
+  --theme-bg-main: #faf9f5;         /* Warm White / Ivory Canvas */
+  --theme-bg-surface: #ffffff;      /* Pure Crisp Card Surface */
+  --theme-bg-subtle: #f4f2ec;       /* Warm Stone / Pill Fill */
+  --theme-bg-dark: #0a0a0a;         /* Pitch Obsidian Black */
+  
+  --theme-text-primary: #0a0a0a;    /* High-contrast Black */
+  --theme-text-secondary: #4a4740;  /* Editorial Soft Charcoal */
+  --theme-text-muted: #737069;      /* Muted Neutral */
+  --theme-text-light: #ffffff;      /* White Text for dark components */
+
+  --theme-border-light: #e7e5df;    /* Subtle Separator */
+  --theme-border-medium: #cfcbc1;   /* Active / Focus Border */
+  --theme-border-dark: #0a0a0a;     /* Accent Line */
+
+  --theme-accent-gold: #a37237;     /* Warm Luxury Hint */
+  --theme-accent-veg: #1e7041;      /* Certified Organic Green */
+  --theme-accent-alert: #b82828;    /* Alert Red */
+
+  --theme-radius-sm: 0.5rem;
+  --theme-radius-md: 0.75rem;
+  --theme-radius-lg: 1.25rem;
+  --theme-radius-full: 9999px;
+}
+
+@theme {
+  --font-display: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+
+  --color-brand: var(--theme-bg-dark);
   --color-brand-dark: #000000;
   --color-brand-deep: #050505;
 
-  /* Pure Onyx & Pitch Black Accents */
-  --color-onyx: #0a0a0a;
-  --color-ink: #121212;
-  --color-ink-soft: #42403c;
-  --color-muted: #737069;
+  --color-onyx: var(--theme-bg-dark);
+  --color-ink: var(--theme-text-primary);
+  --color-ink-soft: var(--theme-text-secondary);
+  --color-muted: var(--theme-text-muted);
   --color-subtle: #99958d;
 
-  /* Warm White & Natural Linen Canvas */
-  --color-canvas: #faf9f5;
-  --color-surface: #ffffff;
-  --color-paper: #f4f2ec;
+  --color-canvas: var(--theme-bg-main);
+  --color-surface: var(--theme-bg-surface);
+  --color-paper: var(--theme-bg-subtle);
   --color-paper-light: #f7f6f1;
-  --color-line: #e7e5df;
-  --color-line-dark: #d5d2c9;
+  --color-line: var(--theme-border-light);
+  --color-line-dark: var(--theme-border-medium);
 
-  /* Warm Accent & Editorial Highlights */
-  --color-amber-accent: #a37237;
-  --color-veg: #1e7041;
-  --color-nonveg: #b82828;
+  --color-amber-accent: var(--theme-accent-gold);
+  --color-veg: var(--theme-accent-veg);
+  --color-nonveg: var(--theme-accent-alert);
 }
 
 @layer base {
@@ -49,8 +76,8 @@
     font-family: var(--font-sans);
     font-size: 1rem;
     line-height: 1.6;
-    color: var(--color-ink);
-    background-color: var(--color-canvas);
+    color: var(--theme-text-primary);
+    background-color: var(--theme-bg-main);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -80,14 +107,14 @@
   }
 
   ::selection {
-    background: #141414;
+    background: #0a0a0a;
     color: #ffffff;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     letter-spacing: -0.02em;
   }
 
@@ -96,53 +123,24 @@
   }
 
   .container-app {
-    width: min(1280px, calc(100% - 2.5rem));
+    width: min(1320px, calc(100% - 2.5rem));
     margin-inline: auto;
   }
 
   .warm-border {
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--theme-border-light);
   }
 
   .warm-card {
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: 1rem;
+    background-color: var(--theme-bg-surface);
+    border: 1px solid var(--theme-border-light);
+    border-radius: var(--theme-radius-lg);
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .warm-card:hover {
-    border-color: #cfcbc1;
-    box-shadow: 0 10px 30px -10px rgba(18, 18, 18, 0.06);
-  }
-
-  .luxury-button {
-    background-color: var(--color-onyx);
-    color: #ffffff;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    border-radius: 0.75rem;
-    transition: all 0.2s ease;
-  }
-
-  .luxury-button:hover {
-    background-color: #262626;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  }
-
-  .luxury-button-outline {
-    background-color: transparent;
-    color: var(--color-ink);
-    border: 1.5px solid var(--color-onyx);
-    font-weight: 500;
-    border-radius: 0.75rem;
-    transition: all 0.2s ease;
-  }
-
-  .luxury-button-outline:hover {
-    background-color: var(--color-onyx);
-    color: #ffffff;
+    border-color: var(--theme-border-medium);
+    box-shadow: 0 10px 30px -10px rgba(10, 10, 10, 0.06);
   }
 
   .hide-scrollbar {

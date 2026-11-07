@@ -16,7 +16,15 @@ class CatalogService {
     if (vertical) {
       filter.$or = [{ vertical }, { vertical: 'both' }];
     }
-    return Category.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
+    const categories = await Category.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
+    if (categories && categories.length > 0) return categories;
+
+    // Fallback standard multi-vendor taxonomy if DB is clean
+    const { SHOP_CATEGORIES } = require('../../../scripts/seedShopCategories');
+    if (vertical) {
+      return SHOP_CATEGORIES.filter(c => c.vertical === vertical || c.vertical === 'both');
+    }
+    return SHOP_CATEGORIES;
   }
 
   async getCategoriesTree({ vertical = null } = {}) {
@@ -26,16 +34,25 @@ class CatalogService {
     }
     const all = await Category.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
 
-    // Build tree: parent categories with nested subcategories
-    const parents = all.filter(c => !c.parentId);
-    const children = all.filter(c => c.parentId);
+    if (all && all.length > 0) {
+      // Build tree: parent categories with nested subcategories
+      const parents = all.filter(c => !c.parentId);
+      const children = all.filter(c => c.parentId);
 
-    return parents.map(parent => ({
-      ...parent,
-      subcategories: children.filter(
-        child => child.parentId && child.parentId.toString() === parent._id.toString()
-      ),
-    }));
+      return parents.map(parent => ({
+        ...parent,
+        subcategories: children.filter(
+          child => child.parentId && child.parentId.toString() === parent._id.toString()
+        ),
+      }));
+    }
+
+    // Fallback standard multi-vendor taxonomy
+    const { SHOP_CATEGORIES } = require('../../../scripts/seedShopCategories');
+    const filtered = vertical 
+      ? SHOP_CATEGORIES.filter(c => c.vertical === vertical || c.vertical === 'both')
+      : SHOP_CATEGORIES;
+    return filtered.map(c => ({ ...c, subcategories: [] }));
   }
 
   async getListing(listingId) {

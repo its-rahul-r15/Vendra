@@ -9,14 +9,16 @@ import {
   Layers,
   Search,
   Star,
-  CheckCircle2,
-  Clock3,
+  Gift,
+  Heart,
+  Tag,
+  Clock,
+  Compass,
 } from 'lucide-react'
-import { catalogApi, feedApi, restaurantsApi, vendorsApi } from '@/api'
+import { catalogApi, feedApi, restaurantsApi } from '@/api'
 import { ProductCard } from '@/components/commerce/ProductCard'
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard'
 import { Spinner } from '@/components/ui/Spinner'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { resolveImage } from '@/utils/media'
 
@@ -25,10 +27,7 @@ export function HomePage() {
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [shops, setShops] = useState([])
-  const [banners, setBanners] = useState([])
-  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
   useEffect(() => {
     let active = true
@@ -36,11 +35,10 @@ export function HomePage() {
     async function loadData() {
       setLoading(true)
       try {
-        const [categoryList, productRes, nearbyRes, bannerList] = await Promise.allSettled([
+        const [categoryList, productRes, nearbyRes] = await Promise.allSettled([
           catalogApi.categories(),
           catalogApi.products({ limit: 12, sort: 'newest' }),
-          restaurantsApi.nearby({ lat: 28.6139, lng: 77.209, radius: 15, limit: 6 }),
-          feedApi.banners('ALL'),
+          restaurantsApi.nearby({ lat: 28.6139, lng: 77.209, radius: 25, limit: 6 }),
         ])
 
         if (!active) return
@@ -54,11 +52,6 @@ export function HomePage() {
         if (nearbyRes.status === 'fulfilled') {
           setShops(nearbyRes.value?.restaurants || [])
         }
-        if (bannerList.status === 'fulfilled') {
-          setBanners(bannerList.value || [])
-        }
-      } catch (err) {
-        if (active) setError(err.message)
       } finally {
         if (active) setLoading(false)
       }
@@ -70,15 +63,6 @@ export function HomePage() {
     }
   }, [])
 
-  function handleSearchSubmit(e) {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
-    } else {
-      navigate('/search')
-    }
-  }
-
   if (loading) {
     return (
       <div className="container-app flex min-h-[50vh] items-center justify-center py-24">
@@ -88,275 +72,261 @@ export function HomePage() {
   }
 
   return (
-    <div className="animate-rise space-y-16 pb-20">
-      {/* 1. Super Premium Hero Section */}
-      <section className="border-b border-[#e7e5df] bg-[#ffffff] pt-12 pb-16 md:pt-20 md:pb-24">
-        <div className="container-app">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#e7e5df] bg-[#faf9f5] px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#121212]">
-              <Sparkles className="size-3.5 text-[#a37237]" />
-              The Multi-Vendor Marketplace
-            </span>
+    <div className="animate-rise space-y-16 pb-24">
+      {/* ── 1. Hero Editorial Collab Banner (Matching Attached Screenshot Reference) ── */}
+      <section className="container-app pt-6 md:pt-8">
+        <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr] items-stretch">
+          {/* Main Large Editorial Card */}
+          <div className="relative overflow-hidden rounded-3xl bg-[#0a0a0a] text-white min-h-[380px] sm:min-h-[460px] flex flex-col justify-end p-8 sm:p-12 shadow-sm">
+            {/* Background Image with Cinematic Gradient */}
+            <img
+              src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1400&q=85"
+              alt="Editorial Banner"
+              className="absolute inset-0 size-full object-cover opacity-80 mix-blend-screen"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-            <h1 className="mt-6 text-4xl font-black tracking-tight text-[#0a0a0a] sm:text-6xl md:leading-[1.1]">
-              Independent Shops.<br />
-              <span className="font-serif italic font-normal text-[#575550]">
-                Every Category, Unified.
+            <div className="relative z-10 max-w-xl">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-md">
+                <Sparkles className="size-3.5 text-amber-300" />
+                Featured Editorial Curation
               </span>
-            </h1>
-
-            <p className="mx-auto mt-6 max-w-xl text-lg text-[#575550] leading-relaxed">
-              Explore curated electronics, apparel, living, and gourmet provisions from verified independent merchants.
-            </p>
-
-            {/* Quick Hero Search Input */}
-            <form onSubmit={handleSearchSubmit} className="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-2xl border border-[#121212] bg-[#ffffff] p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-              <div className="flex flex-1 items-center gap-3 pl-3">
-                <Search className="size-5 text-[#737069]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="What are you shopping for today?"
-                  className="w-full bg-transparent text-base text-[#121212] outline-none placeholder:text-[#99958d]"
-                />
+              <h1 className="mt-4 text-3xl font-serif italic tracking-tight text-white sm:text-5xl md:text-6xl font-normal leading-[1.08]">
+                Celebrate the season with artisan craft.
+              </h1>
+              <p className="mt-3 text-sm sm:text-base text-white/80 max-w-md">
+                Discover independent makers, handmade ceramics, boutique fashion, and gourmet holiday provisions.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={() => navigate('/categories')}
+                  className="rounded-full bg-white text-[#0a0a0a] hover:bg-[#faf9f5] font-bold text-xs uppercase tracking-wider px-6 h-11"
+                >
+                  Shop the collection
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => navigate('/shops')}
+                  className="rounded-full border-white/60 text-white hover:bg-white/10 text-xs font-semibold px-5 h-11"
+                >
+                  Meet the makers
+                </Button>
               </div>
-              <Button type="submit" variant="primary" className="h-11 px-6 text-sm font-semibold">
-                Explore
-              </Button>
-            </form>
-
-            {/* Quick Navigation Chips */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm text-[#737069]">
-              <span className="font-medium text-[#121212]">Popular:</span>
-              <Link to="/categories" className="rounded-full border border-[#e7e5df] bg-[#faf9f5] px-3 py-1 hover:border-[#121212] hover:text-[#121212]">
-                Category-Wise List
-              </Link>
-              <Link to="/shops" className="rounded-full border border-[#e7e5df] bg-[#faf9f5] px-3 py-1 hover:border-[#121212] hover:text-[#121212]">
-                Verified Shops
-              </Link>
-              <Link to="/search?filter=deals" className="rounded-full border border-[#e7e5df] bg-[#faf9f5] px-3 py-1 hover:border-[#121212] hover:text-[#121212]">
-                Steal Deals
-              </Link>
-              <Link to="/vendor/register" className="rounded-full border border-[#0a0a0a] bg-[#0a0a0a] px-3 py-1 font-semibold text-white hover:bg-[#262626]">
-                Sell on Vendra
-              </Link>
             </div>
+          </div>
+
+          {/* Right Column: 2 Featured Editorial Tiles with Price Tags (Etsy Style) */}
+          <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+            {/* Top Tile */}
+            <Link
+              to="/categories?categoryId=gifts-festive-hampers"
+              className="group relative overflow-hidden rounded-3xl bg-[#f4f2ec] border border-[#e7e5df] p-6 flex flex-col justify-between transition hover:border-[#0a0a0a]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1549465220-1a8b9238cd45?w=700&q=80"
+                alt="Festive Wrap Set"
+                className="absolute inset-0 size-full object-cover transition group-hover:scale-105 duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+              <div className="relative z-10 flex justify-end">
+                <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-[#0a0a0a] shadow-sm">
+                  From ₹1,299
+                </span>
+              </div>
+
+              <div className="relative z-10 text-white">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white/80">
+                  Gifting Sets
+                </span>
+                <h3 className="mt-1 text-xl font-bold font-serif italic text-white">
+                  Handcrafted Gift Packs
+                </h3>
+              </div>
+            </Link>
+
+            {/* Bottom Tile */}
+            <Link
+              to="/categories?categoryId=home-living-decor"
+              className="group relative overflow-hidden rounded-3xl bg-[#f4f2ec] border border-[#e7e5df] p-6 flex flex-col justify-between transition hover:border-[#0a0a0a]"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=700&q=80"
+                alt="Bespoke Ceramics"
+                className="absolute inset-0 size-full object-cover transition group-hover:scale-105 duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+              <div className="relative z-10 flex justify-end">
+                <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-[#0a0a0a] shadow-sm">
+                  From ₹799
+                </span>
+              </div>
+
+              <div className="relative z-10 text-white">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-white/80">
+                  Home Living
+                </span>
+                <h3 className="mt-1 text-xl font-bold font-serif italic text-white">
+                  Minimalist Home Decor
+                </h3>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* 2. Platform Value Props */}
+      {/* ── 2. Explore by Interest / Category Pills Section (Etsy Section Style) ── */}
       <section className="container-app">
-        <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[#e7e5df] bg-white p-6 md:grid-cols-4 md:p-8">
-          <div className="flex items-start gap-3.5">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#faf9f5] text-[#121212] border border-[#e7e5df]">
-              <Truck className="size-5" />
-            </span>
-            <div>
-              <h4 className="text-base font-bold text-[#121212]">Fast Direct Delivery</h4>
-              <p className="mt-0.5 text-xs text-[#737069]">Dispatched from verified vendors</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3.5">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#faf9f5] text-[#121212] border border-[#e7e5df]">
-              <Store className="size-5" />
-            </span>
-            <div>
-              <h4 className="text-base font-bold text-[#121212]">Independent Merchants</h4>
-              <p className="mt-0.5 text-xs text-[#737069]">Support certified local businesses</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3.5">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#faf9f5] text-[#121212] border border-[#e7e5df]">
-              <ShieldCheck className="size-5" />
-            </span>
-            <div>
-              <h4 className="text-base font-bold text-[#121212]">Guaranteed Quality</h4>
-              <p className="mt-0.5 text-xs text-[#737069]">100% authentic multi-category items</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3.5">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#faf9f5] text-[#121212] border border-[#e7e5df]">
-              <Layers className="size-5" />
-            </span>
-            <div>
-              <h4 className="text-base font-bold text-[#121212]">Unified Checkout</h4>
-              <p className="mt-0.5 text-xs text-[#737069]">Seamless COD & payment security</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Category-Wise Shopping Showcase */}
-      <section className="container-app">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div className="flex items-center justify-between border-b border-[#e7e5df] pb-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[#737069]">
-              Department Catalog
-            </p>
-            <h2 className="mt-1 text-2xl font-black text-[#0a0a0a] sm:text-3xl">
-              Shop by Category
+            <h2 className="text-2xl font-serif italic font-black text-[#0a0a0a] sm:text-3xl">
+              Explore by Department & Interest
             </h2>
+            <p className="mt-1 text-sm text-[#575550]">
+              Handcrafted items, retail boutiques, and gourmet kitchens curated category-wise.
+            </p>
           </div>
           <Link
             to="/categories"
-            className="flex items-center gap-1.5 text-sm font-semibold text-[#121212] hover:underline"
+            className="rounded-full border border-[#0a0a0a] px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white transition"
           >
-            <span>View All Categories & Lists</span>
-            <ArrowRight className="size-4" />
+            View all
           </Link>
         </div>
 
-        {categories.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {categories.slice(0, 12).map((cat) => (
-              <Link
-                key={cat._id || cat.id}
-                to={`/categories?categoryId=${cat._id || cat.id}`}
-                className="group warm-card flex flex-col overflow-hidden bg-white p-4 text-center transition hover:-translate-y-0.5"
-              >
-                <div className="mx-auto aspect-square w-full overflow-hidden rounded-xl bg-[#faf9f5] p-3 flex items-center justify-center">
-                  {cat.image || cat.iconUrl ? (
-                    <img
-                      src={resolveImage(cat.image || cat.iconUrl)}
-                      alt={cat.name}
-                      className="size-full object-contain transition group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <Layers className="size-8 text-[#121212]" />
-                  )}
-                </div>
-                <h3 className="mt-3 truncate text-sm font-bold text-[#121212] group-hover:text-[#42403c]">
-                  {cat.name}
-                </h3>
-                <span className="mt-0.5 text-xs text-[#737069]">Shop list</span>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-[#e7e5df] p-10 text-center">
-            <Layers className="mx-auto size-8 text-[#737069]" />
-            <p className="mt-3 text-base text-[#737069]">
-              Categories are ready to browse. Check our product search.
-            </p>
-            <Link to="/search" className="mt-4 inline-block font-semibold text-[#121212] underline">
-              Browse all items
+        {/* Circular / Rounded Category Avatars */}
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {categories.slice(0, 12).map((cat) => (
+            <Link
+              key={cat._id || cat.slug || cat.name}
+              to={`/categories?categoryId=${cat._id || cat.slug}`}
+              className="group flex flex-col items-center text-center p-3 rounded-2xl transition hover:bg-white"
+            >
+              <div className="relative size-24 sm:size-28 overflow-hidden rounded-full border border-[#e7e5df] bg-[#f4f2ec] p-1 transition group-hover:scale-105 duration-300">
+                <img
+                  src={resolveImage(cat.image || cat.iconUrl)}
+                  alt={cat.name}
+                  className="size-full rounded-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <h3 className="mt-3 text-sm font-bold text-[#0a0a0a] group-hover:underline">
+                {cat.name}
+              </h3>
+              <span className="text-[11px] text-[#737069]">Shop now</span>
             </Link>
-          </div>
-        )}
-      </section>
-
-      {/* 4. Shop-Wise Discovery Showcase */}
-      <section className="container-app">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[#737069]">
-              Verified Merchants
-            </p>
-            <h2 className="mt-1 text-2xl font-black text-[#0a0a0a] sm:text-3xl">
-              Shop by Store
-            </h2>
-          </div>
-          <Link
-            to="/shops"
-            className="flex items-center gap-1.5 text-sm font-semibold text-[#121212] hover:underline"
-          >
-            <span>Browse All Shops & Merchants</span>
-            <ArrowRight className="size-4" />
-          </Link>
+          ))}
         </div>
-
-        {shops.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {shops.slice(0, 6).map((shop) => (
-              <RestaurantCard key={shop._id || shop.id} restaurant={shop} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-[#e7e5df] bg-white p-8 text-center">
-            <Store className="mx-auto size-8 text-[#121212]" />
-            <h3 className="mt-3 text-lg font-bold text-[#121212]">Partner Shops Nearby</h3>
-            <p className="mt-1 text-base text-[#737069]">
-              Discover local storefronts and boutiques delivering directly to your door.
-            </p>
-            <Link to="/shops" className="mt-4 inline-flex items-center gap-1.5 font-semibold text-[#121212] underline">
-              Explore Shop Directory <ArrowRight className="size-4" />
-            </Link>
-          </div>
-        )}
       </section>
 
-      {/* 5. Featured Marketplace Products */}
+      {/* ── 3. Handpicked Marketplace Products ── */}
       <section className="container-app">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div className="flex items-center justify-between border-b border-[#e7e5df] pb-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[#737069]">
-              Handpicked Catalog
-            </p>
-            <h2 className="mt-1 text-2xl font-black text-[#0a0a0a] sm:text-3xl">
-              Featured Products
+            <h2 className="text-2xl font-serif italic font-black text-[#0a0a0a] sm:text-3xl">
+              Fresh Discoveries Today
             </h2>
+            <p className="mt-1 text-sm text-[#575550]">
+              Unique pieces directly from independent creators and certified shops.
+            </p>
           </div>
           <Link
             to="/search"
-            className="flex items-center gap-1.5 text-sm font-semibold text-[#121212] hover:underline"
+            className="text-xs font-bold uppercase tracking-wider text-[#0a0a0a] hover:underline"
           >
-            <span>See Full Catalog</span>
-            <ArrowRight className="size-4" />
+            See full catalog →
           </Link>
         </div>
 
         {products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {products.slice(0, 8).map((product) => (
               <ProductCard key={product._id || product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-[#e7e5df] bg-white p-12 text-center">
+          <div className="mt-8 rounded-3xl border border-dashed border-[#e7e5df] p-12 text-center">
             <Search className="mx-auto size-8 text-[#737069]" />
-            <p className="mt-3 text-base text-[#737069]">New arrivals are being added to the catalog.</p>
-            <Link to="/search" className="mt-4 inline-block font-semibold text-[#121212] underline">
-              Search all inventory
+            <p className="mt-3 text-sm text-[#737069]">Catalog items are being updated.</p>
+          </div>
+        )}
+      </section>
+
+      {/* ── 4. Independent Verified Shops ── */}
+      <section className="container-app">
+        <div className="flex items-center justify-between border-b border-[#e7e5df] pb-4">
+          <div>
+            <h2 className="text-2xl font-serif italic font-black text-[#0a0a0a] sm:text-3xl">
+              Shops You Might Love
+            </h2>
+            <p className="mt-1 text-sm text-[#575550]">
+              Support independent boutiques, family kitchens, and verified local retailers.
+            </p>
+          </div>
+          <Link
+            to="/shops"
+            className="text-xs font-bold uppercase tracking-wider text-[#0a0a0a] hover:underline"
+          >
+            Browse all shops →
+          </Link>
+        </div>
+
+        {shops.length > 0 ? (
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {shops.slice(0, 6).map((shop) => (
+              <RestaurantCard key={shop._id || shop.id} restaurant={shop} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 rounded-3xl border border-[#e7e5df] bg-white p-10 text-center">
+            <Store className="mx-auto size-8 text-[#0a0a0a]" />
+            <h3 className="mt-3 text-lg font-bold text-[#0a0a0a]">Verified Independent Stores</h3>
+            <p className="mt-1 text-sm text-[#737069]">
+              Explore boutique shops delivering to your doorstep.
+            </p>
+            <Link
+              to="/shops"
+              className="mt-4 inline-block font-semibold text-xs uppercase tracking-wider text-[#0a0a0a] underline"
+            >
+              Open store directory
             </Link>
           </div>
         )}
       </section>
 
-      {/* 6. Become a Vendor Call to Action */}
+      {/* ── 5. Seller Onboarding Callout (Etsy-inspired Seller Banner) ── */}
       <section className="container-app">
-        <div className="relative overflow-hidden rounded-3xl border border-[#121212] bg-[#0a0a0a] p-8 text-white sm:p-12 md:p-16">
-          <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-white">
-              <Store className="size-3.5" /> Seller Partnerships
+        <div className="rounded-3xl border border-[#e7e5df] bg-[#ffffff] p-8 sm:p-14 shadow-sm">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e7e5df] bg-[#faf9f5] px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#0a0a0a]">
+              <Store className="size-3.5" /> For Independent Makers & Shops
             </span>
-            <h2 className="mt-5 text-3xl font-black tracking-tight sm:text-5xl">
-              Grow Your Business on Vendra
+            <h2 className="mt-4 text-3xl font-serif italic font-black text-[#0a0a0a] sm:text-4xl">
+              Turn your passion into a thriving storefront.
             </h2>
-            <p className="mt-4 text-base text-white/75 sm:text-lg leading-relaxed">
-              Whether you run a boutique, an electronics store, a specialty grocery, or a gourmet eatery, Vendra provides direct access to customers with zero setup complexity.
+            <p className="mt-3 text-base text-[#575550]">
+              Millions of shoppers are waiting. Open your store on Vendra today with streamlined catalog management and zero onboarding friction.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button
-                variant="secondary"
+                variant="primary"
                 size="lg"
                 onClick={() => navigate('/vendor/register')}
-                className="bg-white text-[#0a0a0a] hover:bg-[#faf9f5]"
+                className="rounded-full px-8 h-12 text-xs font-bold uppercase tracking-wider"
               >
-                Register as a Vendor
+                Open your store
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="lg"
                 onClick={() => navigate('/vendor/login')}
-                className="text-white hover:bg-white/10"
+                className="rounded-full px-8 h-12 text-xs font-bold uppercase tracking-wider"
               >
-                Vendor Sign in →
+                Sign in to Vendor Panel
               </Button>
             </div>
           </div>
