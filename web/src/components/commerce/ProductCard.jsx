@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Minus, Plus, ShoppingBag } from 'lucide-react'
+import { Minus, Plus, ShoppingBag, Star } from 'lucide-react'
 import { useCartStore } from '@/stores/cart.store'
 import { useUiStore } from '@/stores/ui.store'
 import { formatINRFromPaise } from '@/utils/money'
@@ -25,89 +25,123 @@ export function ProductCard({ product }) {
     : 0
 
   return (
-    <article className="group warm-card flex flex-col overflow-hidden bg-white">
-      <Link to={`/products/${listingId}`} className="relative block aspect-square overflow-hidden bg-[#f4f2ec]">
+    <article className="group relative flex flex-col rounded-3xl bg-white p-4 transition-all duration-300 hover:shadow-2xl hover:shadow-black/5 ring-1 ring-black/[0.05]">
+      {/* Product Image Frame */}
+      <Link
+        to={`/products/${listingId}`}
+        className="relative block aspect-square w-full overflow-hidden rounded-2xl bg-[#f4f2ee]"
+      >
         <img
           src={resolveImage(image)}
           alt={itemData.name || 'Product'}
-          className="size-full object-cover transition duration-500 ease-out group-hover:scale-105"
+          className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
           loading="lazy"
         />
+
+        {/* Soft Modern Discount Tag */}
         {discount > 0 ? (
-          <span className="absolute left-3 top-3 rounded-md bg-[#0a0a0a] px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-white shadow-sm">
-            {discount}% off
+          <span className="absolute left-3 top-3 rounded-full bg-[#990024] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md">
+            {discount}% OFF
           </span>
         ) : null}
+
         {!available ? (
-          <span className="absolute inset-0 grid place-items-center bg-black/40 text-sm font-semibold tracking-wider uppercase text-white backdrop-blur-[2px]">
-            Sold out
+          <span className="absolute inset-0 grid place-items-center bg-[#120b0d]/70 text-xs font-black tracking-widest uppercase text-white backdrop-blur-[2px]">
+            Sold Out
           </span>
         ) : null}
       </Link>
 
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-center justify-between gap-2 text-xs font-medium text-[#737069]">
-          <span className="truncate">{category.name || 'Marketplace'}</span>
+      {/* Info Section */}
+      <div className="flex flex-1 flex-col pt-4 px-1 pb-1">
+        {/* Category & Store Meta */}
+        <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#8c8587]">
+          <span className="truncate uppercase tracking-wider text-[10px]">
+            {category.name || 'Curated'}
+          </span>
           {vendor.name ? (
-            <span className="truncate font-semibold text-[#121212]">{vendor.name}</span>
+            <span className="truncate text-[#990024] font-bold text-[11px]">
+              {vendor.name}
+            </span>
           ) : null}
         </div>
 
+        {/* Product Title */}
         <Link
           to={`/products/${listingId}`}
-          className="mt-1.5 line-clamp-2 min-h-12 text-base font-semibold text-[#121212] transition hover:text-[#42403c]"
+          className="mt-1.5 line-clamp-2 min-h-11 text-sm sm:text-base font-black text-[#120b0d] group-hover:text-[#990024] transition-colors leading-snug tracking-tight"
         >
           {itemData.name || 'Curated Product'}
         </Link>
 
-        <div className="mt-auto pt-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-[#121212]">
-              {formatINRFromPaise(product.pricePaise || 0)}
+        {/* Micro Guarantee & Delivery */}
+        <div className="mt-2 flex items-center gap-2 text-xs text-[#6e686a] font-medium">
+          <div className="flex items-center gap-1 font-black text-[#120b0d] text-[11px]">
+            <Star className="size-3 fill-[#f59e0b] text-[#f59e0b]" />
+            <span>4.9</span>
+          </div>
+          <span>•</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+            Free Express
+          </span>
+        </div>
+
+        {/* Price & Action Row */}
+        <div className="mt-auto pt-4 flex items-center justify-between gap-2 border-t border-black/[0.05]">
+          <div className="flex flex-col">
+            <span className="text-lg sm:text-xl font-black text-[#120b0d] tracking-tight">
+              {formatINRFromPaise(product.pricePaise)}
             </span>
-            {product.mrpPaise > product.pricePaise ? (
-              <span className="text-xs text-[#99958d] line-through">
+            {discount > 0 ? (
+              <span className="text-[11px] text-[#9c9597] line-through font-semibold">
                 {formatINRFromPaise(product.mrpPaise)}
               </span>
             ) : null}
           </div>
 
-          <div className="mt-3">
-            {cartItem ? (
-              <div className="flex h-10 w-full items-center justify-between rounded-lg border border-[#121212] bg-[#faf9f5] px-2 text-[#121212]">
+          {available ? (
+            cartItem ? (
+              <div className="flex h-9 items-center gap-2.5 rounded-full bg-[#fdf2f4] px-2.5 text-[#990024] font-bold">
                 <button
                   type="button"
-                  aria-label="Decrease quantity"
                   onClick={() => setQuantity(listingId, cartItem.quantity - 1)}
-                  className="grid size-8 place-items-center rounded-md hover:bg-black/5"
+                  className="grid size-6 place-items-center rounded-full hover:bg-[#990024]/10 text-[#990024] transition cursor-pointer"
+                  aria-label="Decrease"
                 >
-                  <Minus className="size-4" />
+                  <Minus className="size-3 stroke-[2.5]" />
                 </button>
-                <span className="font-semibold text-sm">{cartItem.quantity}</span>
+                <span className="min-w-3 text-center text-xs font-black text-[#120b0d]">
+                  {cartItem.quantity}
+                </span>
                 <button
                   type="button"
-                  aria-label="Increase quantity"
                   onClick={() => setQuantity(listingId, cartItem.quantity + 1)}
-                  className="grid size-8 place-items-center rounded-md hover:bg-black/5"
+                  className="grid size-6 place-items-center rounded-full hover:bg-[#990024]/10 text-[#990024] transition cursor-pointer"
+                  aria-label="Increase"
                 >
-                  <Plus className="size-4" />
+                  <Plus className="size-3 stroke-[2.5]" />
                 </button>
               </div>
             ) : (
               <button
                 type="button"
-                disabled={!available}
-                onClick={() => {
-                  addItem(product)
-                  toast('Added to cart', 'success')
+                onClick={async () => {
+                  try {
+                    await addItem(listingId, 1)
+                    toast('Added to your bag!', 'success')
+                  } catch (err) {
+                    toast(err.message || 'Could not add to cart', 'error')
+                  }
                 }}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#0a0a0a] px-4 text-sm font-medium text-white transition duration-150 hover:bg-[#262626] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-9 items-center gap-2 rounded-full bg-[#120b0d] hover:bg-[#990024] px-4 text-xs font-black uppercase tracking-wider text-white active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
               >
-                <ShoppingBag className="size-4" />
-                {available ? 'Add to cart' : 'Sold out'}
+                <ShoppingBag className="size-3.5" />
+                <span>Add</span>
               </button>
-            )}
-          </div>
+            )
+          ) : (
+            <span className="text-xs font-medium text-[#9c9597]">Sold out</span>
+          )}
         </div>
       </div>
     </article>

@@ -192,10 +192,10 @@ export function LoginPage() {
     <div className="container-app max-w-xl py-14 animate-rise">
       {/* Brand & Heading */}
       <div className="text-center">
-        <span className="font-sans text-3xl font-black tracking-tight text-[#0a0a0a]">
+        <span className="font-sans text-3xl font-black tracking-tight text-[#dc2626]">
           Vendra
         </span>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-[#0a0a0a] sm:text-3xl">
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-[#dc2626] sm:text-3xl">
           {tab === 'login'
             ? 'Sign in to your account'
             : tab === 'otp'
@@ -208,8 +208,8 @@ export function LoginPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-8 rounded-3xl border border-[#e7e5df] bg-white p-6 sm:p-8 shadow-sm">
-        <div className="grid grid-cols-3 rounded-xl border border-[#e7e5df] bg-[#faf9f5] p-1 text-center mb-6">
+      <div className="mt-8 rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm">
+        <div className="grid grid-cols-3 rounded-xl border border-slate-100 bg-slate-50 p-1 text-center mb-6">
           <button
             type="button"
             onClick={() => {
@@ -218,8 +218,8 @@ export function LoginPage() {
             }}
             className={`rounded-lg py-2 text-xs sm:text-sm font-semibold transition ${
               tab === 'login'
-                ? 'bg-white text-[#0a0a0a] shadow-sm'
-                : 'text-[#737069] hover:text-[#0a0a0a]'
+                ? 'bg-white text-[#dc2626] shadow-sm'
+                : 'text-[#737069] hover:text-[#dc2626]'
             }`}
           >
             Password
@@ -232,8 +232,8 @@ export function LoginPage() {
             }}
             className={`rounded-lg py-2 text-xs sm:text-sm font-semibold transition ${
               tab === 'otp'
-                ? 'bg-white text-[#0a0a0a] shadow-sm'
-                : 'text-[#737069] hover:text-[#0a0a0a]'
+                ? 'bg-white text-[#dc2626] shadow-sm'
+                : 'text-[#737069] hover:text-[#dc2626]'
             }`}
           >
             Mobile OTP
@@ -246,8 +246,8 @@ export function LoginPage() {
             }}
             className={`rounded-lg py-2 text-xs sm:text-sm font-semibold transition ${
               tab === 'register'
-                ? 'bg-white text-[#0a0a0a] shadow-sm'
-                : 'text-[#737069] hover:text-[#0a0a0a]'
+                ? 'bg-white text-[#dc2626] shadow-sm'
+                : 'text-[#737069] hover:text-[#dc2626]'
             }`}
           >
             Register
@@ -321,7 +321,7 @@ export function LoginPage() {
               </form>
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <div className="rounded-xl border border-[#e7e5df] bg-[#faf9f5] p-3 text-xs text-[#575550]">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs text-[#575550]">
                   Verification code sent to <strong>+91 {otpPhone}</strong>.{' '}
                   <button
                     type="button"
@@ -419,15 +419,15 @@ export function LoginPage() {
         )}
 
         {/* Seller Callout Box */}
-        <div className="mt-8 rounded-2xl border border-[#e7e5df] bg-[#faf9f5] p-4 text-center">
-          <p className="text-sm font-semibold text-[#0a0a0a]">Want to sell on Vendra?</p>
+        <div className="mt-8 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-center">
+          <p className="text-sm font-semibold text-[#dc2626]">Want to sell on Vendra?</p>
           <p className="mt-1 text-xs text-[#737069]">
             Register as a vendor to list your catalog, manage inventory, and receive customer orders.
           </p>
           <div className="mt-3 flex justify-center gap-3">
             <Link
               to="/vendor/register"
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#0a0a0a] underline underline-offset-4"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#dc2626] underline underline-offset-4"
             >
               <span>Register as a Vendor</span>
               <ArrowRight className="size-3" />

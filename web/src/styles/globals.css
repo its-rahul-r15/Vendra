@@ -1,61 +1,48 @@
 @import "tailwindcss";
 
-/* ── Centralized Color & Design Tokens (Black & Warm White Theme) ── */
+/* ── Vendra "Modern Clean Commerce" Design System ── */
 :root {
-  /* Fonts */
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Newsreader', 'Playfair Display', Georgia, serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
 
-  /* Theme Tokens — Standardized Black & Warm White */
-  --theme-bg-main: #faf9f5;         /* Warm White / Ivory Canvas */
-  --theme-bg-surface: #ffffff;      /* Pure Crisp Card Surface */
-  --theme-bg-subtle: #f4f2ec;       /* Warm Stone / Pill Fill */
-  --theme-bg-dark: #0a0a0a;         /* Pitch Obsidian Black */
-  
-  --theme-text-primary: #0a0a0a;    /* High-contrast Black */
-  --theme-text-secondary: #4a4740;  /* Editorial Soft Charcoal */
-  --theme-text-muted: #737069;      /* Muted Neutral */
-  --theme-text-light: #ffffff;      /* White Text for dark components */
+  /* Primary High-Conversion Brand Tone — Royal Crimson */
+  --theme-brand: #990024;
+  --theme-brand-accent: #c41230;
+  --theme-brand-light: #fef1f2;
 
-  --theme-border-light: #e7e5df;    /* Subtle Separator */
-  --theme-border-medium: #cfcbc1;   /* Active / Focus Border */
-  --theme-border-dark: #0a0a0a;     /* Accent Line */
+  /* Clean High-Contrast Palette */
+  --theme-bg-main: #f8fafc;        /* Clean Crisp Slate 50 Canvas */
+  --theme-bg-surface: #ffffff;     /* Pure White Card */
+  --theme-bg-subtle: #f1f5f9;      /* Slate 100 Pill Fill */
+  --theme-bg-dark: #0f172a;        /* Deep Midnight Navy */
 
-  --theme-accent-gold: #a37237;     /* Warm Luxury Hint */
-  --theme-accent-veg: #1e7041;      /* Certified Organic Green */
-  --theme-accent-alert: #b82828;    /* Alert Red */
+  /* Typography */
+  --theme-text-primary: #0f172a;   /* Slate 900 - Sharp, legible */
+  --theme-text-secondary: #475569; /* Slate 600 */
+  --theme-text-muted: #94a3b8;     /* Slate 400 */
+  --theme-text-light: #ffffff;     /* White */
 
-  --theme-radius-sm: 0.5rem;
-  --theme-radius-md: 0.75rem;
-  --theme-radius-lg: 1.25rem;
+  --theme-radius-sm: 10px;
+  --theme-radius-md: 16px;
+  --theme-radius-lg: 24px;
   --theme-radius-full: 9999px;
 }
 
 @theme {
   --font-display: var(--font-sans);
   --font-sans: var(--font-sans);
-  --font-serif: var(--font-serif);
 
-  --color-brand: var(--theme-bg-dark);
-  --color-brand-dark: #000000;
-  --color-brand-deep: #050505;
+  --color-brand: var(--theme-brand);
+  --color-brand-accent: var(--theme-brand-accent);
 
   --color-onyx: var(--theme-bg-dark);
   --color-ink: var(--theme-text-primary);
   --color-ink-soft: var(--theme-text-secondary);
   --color-muted: var(--theme-text-muted);
-  --color-subtle: #99958d;
 
   --color-canvas: var(--theme-bg-main);
   --color-surface: var(--theme-bg-surface);
   --color-paper: var(--theme-bg-subtle);
-  --color-paper-light: #f7f6f1;
-  --color-line: var(--theme-border-light);
-  --color-line-dark: var(--theme-border-medium);
-
-  --color-amber-accent: var(--theme-accent-gold);
-  --color-veg: var(--theme-accent-veg);
-  --color-nonveg: var(--theme-accent-alert);
 }
 
 @layer base {
@@ -75,7 +62,7 @@
     min-height: 100dvh;
     font-family: var(--font-sans);
     font-size: 1rem;
-    line-height: 1.6;
+    line-height: 1.5;
     color: var(--theme-text-primary);
     background-color: var(--theme-bg-main);
     -webkit-font-smoothing: antialiased;
@@ -107,7 +94,7 @@
   }
 
   ::selection {
-    background: #0a0a0a;
+    background: #990024;
     color: #ffffff;
   }
 }
@@ -115,32 +102,24 @@
 @layer utilities {
   .font-display {
     font-family: var(--font-sans);
-    letter-spacing: -0.02em;
-  }
-
-  .font-serif {
-    font-family: var(--font-serif);
+    letter-spacing: -0.025em;
   }
 
   .container-app {
-    width: min(1320px, calc(100% - 2.5rem));
+    width: min(1380px, calc(100% - 2rem));
     margin-inline: auto;
   }
 
-  .warm-border {
-    border: 1px solid var(--theme-border-light);
-  }
-
-  .warm-card {
-    background-color: var(--theme-bg-surface);
-    border: 1px solid var(--theme-border-light);
-    border-radius: var(--theme-radius-lg);
+  .clean-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px -2px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.02);
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .warm-card:hover {
-    border-color: var(--theme-border-medium);
-    box-shadow: 0 10px 30px -10px rgba(10, 10, 10, 0.06);
+  .clean-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 32px -8px rgba(153, 0, 36, 0.12), 0 4px 12px 0 rgba(15, 23, 42, 0.03);
   }
 
   .hide-scrollbar {
@@ -163,6 +142,6 @@
   }
 
   .animate-rise {
-    animation: rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: rise 0.25s ease-out forwards;
   }
 }

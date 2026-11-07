@@ -110,33 +110,32 @@ export function CategoriesPage() {
   )
 
   return (
-    <div className="container-app py-10 animate-rise">
-      {/* Header Banner */}
-      <div className="border-b border-[#e7e5df] pb-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="container-app py-8 sm:py-12 animate-rise">
+      {/* Header Banner — Minimalist Editorial Style */}
+      <div className="pb-8 border-b border-black/[0.06]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#737069]">
-              <Layers className="size-4" />
-              Department Directory
+            <span className="text-[11px] font-black uppercase tracking-widest text-[#990024]">
+              Marketplace Catalog
             </span>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-[#0a0a0a] sm:text-4xl">
-              Category-Wise Shopping List
+            <h1 className="mt-1 text-3xl sm:text-4xl font-black tracking-tight text-[#120b0d]">
+              Curated Departments
             </h1>
-            <p className="mt-2 text-base text-[#575550]">
-              Browse products by department or category with quick shopping controls.
+            <p className="mt-1 text-xs sm:text-sm text-[#5c5658] font-medium">
+              Explore authentic products from certified independent creators and brand sellers.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {/* View Mode Switcher */}
-            <div className="flex items-center rounded-xl border border-[#e7e5df] bg-white p-1">
+            <div className="flex items-center rounded-full bg-slate-100 p-1">
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                className={`rounded-full px-4 py-1.5 text-xs font-bold transition cursor-pointer ${
                   viewMode === 'grid'
-                    ? 'bg-[#0a0a0a] text-white'
-                    : 'text-[#575550] hover:text-[#0a0a0a]'
+                    ? 'bg-[#120b0d] text-white shadow-xs'
+                    : 'text-[#5c5658] hover:text-[#120b0d]'
                 }`}
               >
                 Grid
@@ -144,13 +143,13 @@ export function CategoriesPage() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                className={`rounded-full px-4 py-1.5 text-xs font-bold transition cursor-pointer ${
                   viewMode === 'list'
-                    ? 'bg-[#0a0a0a] text-white'
-                    : 'text-[#575550] hover:text-[#0a0a0a]'
+                    ? 'bg-[#120b0d] text-white shadow-xs'
+                    : 'text-[#5c5658] hover:text-[#120b0d]'
                 }`}
               >
-                Shopping List
+                List View
               </button>
             </div>
 
@@ -159,7 +158,7 @@ export function CategoriesPage() {
               aria-label="Sort catalog"
               value={sort}
               onChange={(e) => handleSortChange(e.target.value)}
-              className="h-10 rounded-xl border border-[#e7e5df] bg-white px-3 text-sm font-medium text-[#121212] outline-none focus:border-[#0a0a0a]"
+              className="h-9 rounded-full bg-slate-100 px-4 text-xs font-bold text-[#120b0d] outline-none border-none cursor-pointer"
             >
               <option value="newest">Featured & Newest</option>
               <option value="price_asc">Price: Low to High</option>
@@ -173,10 +172,10 @@ export function CategoriesPage() {
           <button
             type="button"
             onClick={() => selectCategory('')}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+            className={`rounded-full px-4 py-2 text-xs font-black uppercase tracking-wider transition cursor-pointer ${
               !activeCategoryId
-                ? 'bg-[#0a0a0a] text-white'
-                : 'border border-[#e7e5df] bg-white text-[#42403c] hover:border-[#0a0a0a]'
+                ? 'bg-[#120b0d] text-white shadow-xs'
+                : 'bg-white border border-black/10 text-[#5c5658] hover:text-[#120b0d] hover:border-black/30'
             }`}
           >
             All Departments
@@ -190,10 +189,10 @@ export function CategoriesPage() {
                 key={catId}
                 type="button"
                 onClick={() => selectCategory(catId)}
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                className={`rounded-full px-4 py-2 text-xs font-bold transition cursor-pointer ${
                   isActive
-                    ? 'bg-[#0a0a0a] text-white'
-                    : 'border border-[#e7e5df] bg-white text-[#42403c] hover:border-[#0a0a0a]'
+                    ? 'bg-[#990024] text-white shadow-xs'
+                    : 'bg-white border border-black/10 text-[#5c5658] hover:text-[#120b0d] hover:border-black/30'
                 }`}
               >
                 {cat.name}
@@ -204,23 +203,25 @@ export function CategoriesPage() {
       </div>
 
       {/* Main Content Area: Sidebar Tree + Products */}
-      <div className="mt-8 grid gap-8 lg:grid-cols-[280px_1fr]">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[240px_1fr]">
         {/* Left: Department Tree Navigation */}
         <aside className="space-y-6">
-          <div className="rounded-2xl border border-[#e7e5df] bg-white p-5">
-            <h3 className="text-base font-bold text-[#0a0a0a]">Categories</h3>
-            <div className="mt-4 space-y-1">
+          <div className="rounded-3xl bg-white p-5 ring-1 ring-black/[0.05]">
+            <h3 className="text-xs font-black uppercase tracking-widest text-[#120b0d] pb-3 border-b border-black/[0.05]">
+              Departments
+            </h3>
+            <div className="mt-3 space-y-1">
               <button
                 type="button"
                 onClick={() => selectCategory('')}
-                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition cursor-pointer ${
                   !activeCategoryId
-                    ? 'bg-[#faf9f5] font-bold text-[#0a0a0a]'
-                    : 'text-[#575550] hover:bg-[#faf9f5]'
+                    ? 'bg-[#fdf2f4] text-[#990024]'
+                    : 'text-[#5c5658] hover:bg-slate-50'
                 }`}
               >
                 <span>All Products</span>
-                {!activeCategoryId ? <Check className="size-4" /> : null}
+                {!activeCategoryId ? <Check className="size-3.5" /> : null}
               </button>
 
               {categoriesTree.map((parent) => {
@@ -235,8 +236,8 @@ export function CategoriesPage() {
                       onClick={() => selectCategory(parentId)}
                       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
                         isParentActive
-                          ? 'bg-[#faf9f5] font-bold text-[#0a0a0a]'
-                          : 'text-[#575550] hover:bg-[#faf9f5]'
+                          ? 'bg-slate-50 font-bold text-[#dc2626]'
+                          : 'text-[#575550] hover:bg-slate-50'
                       }`}
                     >
                       <span className="truncate">{parent.name}</span>
@@ -255,8 +256,8 @@ export function CategoriesPage() {
                               onClick={() => selectCategory(subId)}
                               className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs font-medium transition ${
                                 isSubActive
-                                  ? 'font-bold text-[#0a0a0a]'
-                                  : 'text-[#737069] hover:text-[#0a0a0a]'
+                                  ? 'font-bold text-[#dc2626]'
+                                  : 'text-[#737069] hover:text-[#dc2626]'
                               }`}
                             >
                               <span className="truncate">{sub.name}</span>
@@ -272,14 +273,14 @@ export function CategoriesPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#e7e5df] bg-[#faf9f5] p-5">
-            <h4 className="text-sm font-bold text-[#0a0a0a]">Are you a vendor?</h4>
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+            <h4 className="text-sm font-bold text-[#dc2626]">Are you a vendor?</h4>
             <p className="mt-1.5 text-xs text-[#737069] leading-relaxed">
               List your catalog items under these categories and start selling to thousands of customers.
             </p>
             <Link
               to="/vendor/register"
-              className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#0a0a0a] underline"
+              className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#dc2626] underline"
             >
               <span>Register as a vendor</span>
               <ArrowRight className="size-3" />
@@ -290,7 +291,7 @@ export function CategoriesPage() {
         {/* Right: Product Display (Grid or Quick Shopping List) */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#0a0a0a]">
+            <h2 className="text-xl font-bold text-[#dc2626]">
               {selectedCategory?.name || 'All Categories'}
               <span className="ml-2 text-sm font-normal text-[#737069]">
                 ({products.length} {products.length === 1 ? 'item' : 'items'})
@@ -300,7 +301,7 @@ export function CategoriesPage() {
 
           {loadingProducts ? (
             <div className="flex min-h-[300px] items-center justify-center">
-              <Spinner className="size-8 text-[#0a0a0a]" />
+              <Spinner className="size-8 text-[#dc2626]" />
             </div>
           ) : !products.length ? (
             <EmptyState
@@ -318,7 +319,7 @@ export function CategoriesPage() {
             </div>
           ) : (
             /* Shopping List View (Fast Add List) */
-            <div className="divide-y divide-[#e7e5df] rounded-2xl border border-[#e7e5df] bg-white">
+            <div className="divide-y divide-[#e7e5df] rounded-2xl border border-slate-100 bg-white">
               {products.map((product) => {
                 const listingId = String(product._id || product.id)
                 const itemData = product.itemId || product.product || {}
@@ -338,12 +339,12 @@ export function CategoriesPage() {
                 return (
                   <div
                     key={listingId}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 transition hover:bg-[#faf9f5]"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 transition hover:bg-slate-50"
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       <Link
                         to={`/products/${listingId}`}
-                        className="size-18 shrink-0 overflow-hidden rounded-xl bg-[#f4f2ec] border border-[#e7e5df]"
+                        className="size-18 shrink-0 overflow-hidden rounded-xl bg-[#f4f2ec] border border-slate-100"
                       >
                         <img
                           src={resolveImage(image)}
@@ -355,7 +356,7 @@ export function CategoriesPage() {
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 text-xs text-[#737069]">
-                          <span className="font-semibold text-[#121212]">
+                          <span className="font-semibold text-[#111827]">
                             {vendor.name || 'Vendra'}
                           </span>
                           <span>·</span>
@@ -364,13 +365,13 @@ export function CategoriesPage() {
 
                         <Link
                           to={`/products/${listingId}`}
-                          className="mt-0.5 block truncate text-base font-bold text-[#121212] hover:underline"
+                          className="mt-0.5 block truncate text-base font-bold text-[#111827] hover:underline"
                         >
                           {itemData.name || 'Product'}
                         </Link>
 
                         <div className="mt-1 flex items-baseline gap-2">
-                          <span className="text-base font-bold text-[#121212]">
+                          <span className="text-base font-bold text-[#111827]">
                             {formatINRFromPaise(product.pricePaise || 0)}
                           </span>
                           {product.mrpPaise > product.pricePaise ? (
@@ -387,7 +388,7 @@ export function CategoriesPage() {
 
                     <div className="flex items-center justify-end">
                       {cartEntry ? (
-                        <div className="flex h-10 items-center gap-2 rounded-xl border border-[#121212] bg-white px-2">
+                        <div className="flex h-10 items-center gap-2 rounded-xl border border-[#111827] bg-white px-2">
                           <button
                             type="button"
                             aria-label="Decrease"

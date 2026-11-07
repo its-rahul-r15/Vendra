@@ -1,195 +1,246 @@
-import { useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Search,
   ShoppingBag,
-  UserRound,
   Store,
-  Layers,
-  LayoutDashboard,
-  Gift,
-  Heart,
+  User,
+  X,
+  Truck,
+  ShieldCheck,
   ChevronDown,
   Sparkles,
-  Compass,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCartStore } from '@/stores/cart.store'
-import { cn } from '@/utils/cn'
-import { Button } from '@/components/ui/Button'
-
-const SUB_NAV_LINKS = [
-  { label: 'Gifts & Hampers', path: '/categories?categoryId=gifts-festive-hampers', icon: Gift },
-  { label: 'Fashion & Apparel', path: '/categories?vertical=commerce' },
-  { label: 'Home & Living', path: '/categories?categoryId=home-living-decor' },
-  { label: 'Artisan Kitchens', path: '/shops?vertical=food' },
-  { label: 'Organic Pantry', path: '/categories?vertical=grocery' },
-  { label: 'Jewellery', path: '/categories?categoryId=jewellery-watches' },
-  { label: 'Deals of the Week', path: '/search?filter=deals' },
-]
 
 export function Header() {
   const navigate = useNavigate()
+  const location = useLocation()
   const user = useAuthStore((s) => s.user)
-  const vendorStatus = useAuthStore((s) => s.vendorStatus)
   const itemCount = useCartStore((s) => s.itemCount)
 
   const [query, setQuery] = useState('')
-  const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
-  const isSeller =
-    ['restaurant_owner', 'merchant_owner'].includes(user?.role) ||
-    vendorStatus === 'active_seller'
+  // Track scroll position to adapt navbar from Hero Carmine to Light Theme
+  useEffect(() => {
+    function handleScroll() {
+      if (window.scrollY > 80) {
+        setScrolled(true)
+      } else {
+        setScrolled(false)
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const isHomePage = location.pathname === '/'
+  // When at top of homepage, navbar is floating translucent on top of Carmine hero
+  const isHeroTheme = isHomePage && !scrolled
 
   function handleSearch(e) {
     e.preventDefault()
     if (query.trim()) {
       navigate(`/search?q=${encodeURIComponent(query.trim())}`)
+      setSearchOpen(false)
     } else {
       navigate('/search')
     }
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#e7e5df] bg-[#ffffff]/98 backdrop-blur-md">
-      {/* ── Main Header Row ── */}
-      <div className="container-app flex h-20 items-center justify-between gap-4 md:gap-6">
-        {/* Brand Logo & Categories Button (Inspired by Etsy reference) */}
-        <div className="flex items-center gap-4 shrink-0">
-          <Link to="/" className="flex items-center gap-1.5">
-            <span className="font-serif italic text-3xl md:text-4xl font-black tracking-tight text-[#0a0a0a]">
-              Vendra
-            </span>
-          </Link>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isHeroTheme
+          ? 'bg-transparent text-white py-4 sm:py-5'
+          : 'bg-[#fcfbfa]/95 backdrop-blur-md text-[#120b0d] py-3 shadow-xs'
+      }`}
+    >
+      <div className="container-app flex items-center justify-between gap-4">
+        
+        {/* Brand Logo (Minimalist Geometric Mark Inspired by Reference) */}
+        <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+          <div
+            className={`size-9 rounded-full flex items-center justify-center transition-all ${
+              isHeroTheme
+                ? 'bg-white text-[#990024] shadow-md group-hover:scale-105'
+                : 'bg-[#990024] text-white shadow-sm shadow-red-950/20 group-hover:scale-105'
+            }`}
+          >
+            <svg viewBox="0 0 24 24" className="size-5 fill-current" stroke="none">
+              <circle cx="12" cy="12" r="3" />
+              <circle cx="12" cy="4" r="2" />
+              <circle cx="12" cy="20" r="2" />
+              <circle cx="4" cy="12" r="2" />
+              <circle cx="20" cy="12" r="2" />
+              <circle cx="6.34" cy="6.34" r="1.6" />
+              <circle cx="17.66" cy="17.66" r="1.6" />
+              <circle cx="6.34" cy="17.66" r="1.6" />
+              <circle cx="17.66" cy="6.34" r="1.6" />
+            </svg>
+          </div>
+          <span className="text-2xl font-black tracking-tight tracking-[-0.04em]">
+            vendra
+          </span>
+        </Link>
 
+        {/* Center Navigation Capsule (Matching reference: Products | Stores | Curations) */}
+        <nav
+          className={`hidden md:flex items-center gap-1 rounded-full p-1.5 transition-all text-xs font-bold ${
+            isHeroTheme
+              ? 'bg-black/25 text-white/90 backdrop-blur-md'
+              : 'bg-[#f4f2ee] text-[#5c5658]'
+          }`}
+        >
           <Link
             to="/categories"
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold text-[#0a0a0a] transition hover:bg-[#f4f2ec]"
+            className={`rounded-full px-5 py-2 transition-all ${
+              location.pathname === '/categories'
+                ? isHeroTheme
+                  ? 'bg-white text-[#990024] shadow-xs'
+                  : 'bg-white text-[#120b0d] shadow-xs'
+                : isHeroTheme
+                ? 'hover:text-white'
+                : 'hover:text-[#120b0d]'
+            }`}
           >
-            <Layers className="size-4" />
-            <span>Categories</span>
+            Products
           </Link>
-        </div>
-
-        {/* Big Rounded Search Input with Pill Submit Button */}
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-1 max-w-2xl items-center rounded-full border border-[#0a0a0a] bg-white p-1 shadow-sm transition focus-within:ring-2 focus-within:ring-[#0a0a0a]/15"
-        >
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for unique items, independent shops, gifts..."
-            className="w-full bg-transparent pl-4 pr-2 text-sm md:text-base text-[#0a0a0a] outline-none placeholder:text-[#8c887f]"
-          />
-          <button
-            type="submit"
-            aria-label="Search marketplace"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-[#0a0a0a] text-white transition hover:bg-[#262626]"
-          >
-            <Search className="size-4.5" />
-          </button>
-        </form>
-
-        {/* Right Actions: Seller CTA, Wishlist/Heart, Cart, Sign In */}
-        <div className="flex items-center gap-2 md:gap-3 shrink-0">
-          {/* Vendor Portal CTA */}
-          {isSeller ? (
-            <Link
-              to="/vendor/dashboard"
-              className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-[#0a0a0a] bg-[#0a0a0a] px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#262626]"
-            >
-              <LayoutDashboard className="size-3.5" />
-              <span>Vendor Panel</span>
-            </Link>
-          ) : (
-            <Link
-              to="/vendor/register"
-              className="hidden xl:inline-flex items-center gap-1.5 rounded-full border border-[#e7e5df] px-3.5 py-1.5 text-xs font-semibold text-[#4a4740] transition hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
-            >
-              <span>Sell on Vendra</span>
-            </Link>
-          )}
-
-          {/* Quick Shops Directory Link */}
           <Link
             to="/shops"
-            className="hidden md:inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-[#4a4740] hover:text-[#0a0a0a] hover:bg-[#f4f2ec]"
+            className={`rounded-full px-5 py-2 transition-all ${
+              location.pathname === '/shops'
+                ? isHeroTheme
+                  ? 'bg-white text-[#990024] shadow-xs'
+                  : 'bg-white text-[#120b0d] shadow-xs'
+                : isHeroTheme
+                ? 'hover:text-white'
+                : 'hover:text-[#120b0d]'
+            }`}
           >
-            <Store className="size-4" />
-            <span>Shops</span>
+            Stores
           </Link>
-
-          {/* Cart Icon Button */}
           <Link
-            to="/cart"
-            aria-label="View Shopping Cart"
-            className="relative grid size-10 place-items-center rounded-full hover:bg-[#f4f2ec] transition text-[#0a0a0a]"
+            to="/search?filter=deals"
+            className={`rounded-full px-5 py-2 transition-all ${
+              location.search.includes('deals')
+                ? isHeroTheme
+                  ? 'bg-white text-[#990024] shadow-xs'
+                  : 'bg-white text-[#120b0d] shadow-xs'
+                : isHeroTheme
+                ? 'hover:text-white'
+                : 'hover:text-[#120b0d]'
+            }`}
           >
-            <ShoppingBag className="size-5.5" />
-            {itemCount > 0 ? (
-              <span className="absolute 0 top-0.5 right-0.5 grid min-w-4.5 h-4.5 place-items-center rounded-full bg-[#0a0a0a] px-1 text-[10px] font-bold text-white">
-                {itemCount}
-              </span>
-            ) : null}
+            Curations
           </Link>
+          <Link
+            to="/vendor/register"
+            className={`rounded-full px-5 py-2 transition-all text-emerald-400 font-extrabold ${
+              isHeroTheme ? 'hover:text-white' : 'hover:text-emerald-700'
+            }`}
+          >
+            Sell
+          </Link>
+        </nav>
 
-          {/* User Sign In / Profile */}
+        {/* Right Action Icons (Search, User, Cart) */}
+        <div className="flex items-center gap-3 shrink-0">
+          
+          {/* Search Trigger / Pill */}
+          {searchOpen ? (
+            <form
+              onSubmit={handleSearch}
+              className={`flex items-center rounded-full px-3.5 py-1.5 shadow-sm transition-all w-60 sm:w-72 ${
+                isHeroTheme
+                  ? 'bg-white text-[#120b0d]'
+                  : 'bg-[#f4f2ee] text-[#120b0d]'
+              }`}
+            >
+              <Search className="size-3.5 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                value={query}
+                autoFocus
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search catalog..."
+                className="w-full bg-transparent px-2 text-xs font-bold outline-none placeholder:text-slate-400"
+              />
+              <button
+                type="button"
+                onClick={() => setSearchOpen(false)}
+                className="text-slate-400 hover:text-black cursor-pointer"
+              >
+                <X className="size-3.5" />
+              </button>
+            </form>
+          ) : (
+            <button
+              onClick={() => setSearchOpen(true)}
+              className={`grid size-10 place-items-center rounded-full transition-all cursor-pointer ${
+                isHeroTheme
+                  ? 'bg-black/20 hover:bg-black/30 text-white backdrop-blur-md'
+                  : 'bg-[#f4f2ee] hover:bg-[#e8e6e0] text-[#120b0d]'
+              }`}
+              title="Search"
+            >
+              <Search className="size-4" />
+            </button>
+          )}
+
+          {/* User Account Circle */}
           {user ? (
             <Link
               to="/account"
-              className="flex items-center gap-2 rounded-full border border-[#e7e5df] bg-white px-3.5 py-1.5 text-sm font-medium text-[#0a0a0a] hover:border-[#0a0a0a] transition"
+              className={`grid size-10 place-items-center rounded-full font-black text-xs transition-all ${
+                isHeroTheme
+                  ? 'bg-black/20 hover:bg-white hover:text-[#990024] text-white backdrop-blur-md'
+                  : 'bg-[#f4f2ee] hover:bg-[#990024] hover:text-white text-[#120b0d]'
+              }`}
+              title="My Account"
             >
-              <UserRound className="size-4" />
-              <span className="max-w-[100px] truncate">
-                {user.name?.split(' ')[0] || 'Account'}
-              </span>
+              <span>{user.name?.[0]?.toUpperCase() || 'U'}</span>
             </Link>
           ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/login')}
-              className="rounded-full px-4 text-xs font-bold uppercase tracking-wider h-9"
+            <Link
+              to="/login"
+              className={`grid size-10 place-items-center rounded-full transition-all ${
+                isHeroTheme
+                  ? 'bg-black/20 hover:bg-white hover:text-[#990024] text-white backdrop-blur-md'
+                  : 'bg-[#f4f2ee] hover:bg-[#990024] hover:text-white text-[#120b0d]'
+              }`}
+              title="Sign In"
             >
-              Sign in
-            </Button>
+              <User className="size-4" />
+            </Link>
           )}
-        </div>
-      </div>
 
-      {/* ── Sub-Navigation Department Ribbon (Matching Etsy Reference) ── */}
-      <div className="border-t border-[#e7e5df] bg-[#ffffff]">
-        <div className="container-app flex items-center justify-between gap-6 overflow-x-auto py-2.5 hide-scrollbar text-xs md:text-sm font-medium text-[#4a4740]">
-          <div className="flex items-center gap-6 shrink-0">
-            {SUB_NAV_LINKS.map((item, idx) => {
-              const Icon = item.icon
-              return (
-                <NavLink
-                  key={idx}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center gap-1.5 py-1 whitespace-nowrap transition hover:text-[#0a0a0a]',
-                      isActive
-                        ? 'font-bold text-[#0a0a0a] border-b-2 border-[#0a0a0a]'
-                        : 'text-[#5a574f]',
-                    )
-                  }
-                >
-                  {Icon ? <Icon className="size-3.5 text-[#0a0a0a]" /> : null}
-                  <span>{item.label}</span>
-                </NavLink>
-              )
-            })}
-          </div>
-
+          {/* Cart Icon Capsule with Count Badge (Matches Reference Top Right Style) */}
           <Link
-            to="/categories"
-            className="shrink-0 text-xs font-bold uppercase tracking-wider text-[#0a0a0a] hover:underline"
+            to="/cart"
+            aria-label="View Shopping Cart"
+            className={`relative grid size-10 place-items-center rounded-full transition-all shadow-sm ${
+              isHeroTheme
+                ? 'bg-white text-[#990024] hover:bg-slate-100'
+                : 'bg-[#120b0d] text-white hover:bg-[#990024]'
+            }`}
           >
-            All Departments →
+            <ShoppingBag className="size-4.5" />
+            {itemCount > 0 ? (
+              <span
+                className={`absolute -top-1 -right-1 grid min-w-4.5 h-4.5 place-items-center rounded-full px-1 text-[10px] font-black shadow-xs ${
+                  isHeroTheme
+                    ? 'bg-[#120b0d] text-white'
+                    : 'bg-[#990024] text-white'
+                }`}
+              >
+                {itemCount}
+              </span>
+            ) : null}
           </Link>
         </div>
       </div>

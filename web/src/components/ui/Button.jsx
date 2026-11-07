@@ -2,23 +2,23 @@ import { cn } from '@/utils/cn'
 
 const variants = {
   primary:
-    'bg-[#0a0a0a] text-white hover:bg-[#262626] shadow-[0_2px_8px_rgba(0,0,0,0.12)] border border-[#0a0a0a]',
+    'bg-[#dc2626] text-white hover:bg-[#b91c1c] shadow-md shadow-red-600/20 font-bold',
   secondary:
-    'bg-white text-[#121212] hover:bg-[#faf9f5] border border-[#121212] shadow-sm',
+    'bg-[#f3f4f6] text-[#111827] hover:bg-[#e5e7eb] font-bold',
   outline:
-    'border border-[#e7e5df] bg-white text-[#121212] hover:border-[#121212] hover:bg-[#faf9f5]',
+    'bg-white text-[#111827] hover:bg-[#fef2f2] hover:text-[#dc2626] shadow-xs font-bold',
+  soft:
+    'bg-[#fef2f2] text-[#dc2626] hover:bg-[#fee2e2] font-bold',
+  danger:
+    'bg-[#dc2626] text-white hover:bg-[#b91c1c] font-bold',
   ghost:
-    'bg-transparent text-[#121212] hover:bg-black/[0.05]',
-  warm:
-    'bg-[#f4f2ec] text-[#121212] hover:bg-[#e8e6df] border border-[#e7e5df]',
-  dark:
-    'bg-[#141414] text-white hover:bg-black',
+    'bg-transparent text-[#111827] hover:bg-[#f3f4f6] font-bold',
 }
 
 const sizes = {
-  sm: 'h-9 px-3.5 text-sm font-medium',
-  md: 'h-11 px-5 text-base font-medium',
-  lg: 'h-13 px-7 text-base font-semibold',
+  sm: 'h-9 px-4 text-xs rounded-xl',
+  md: 'h-11 px-5 text-sm rounded-xl',
+  lg: 'h-13 px-7 text-base rounded-2xl',
 }
 
 export function Button({
@@ -33,7 +33,7 @@ export function Button({
   return (
     <Comp
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl transition duration-150 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-40 cursor-pointer',
+        'inline-flex items-center justify-center gap-2 transition duration-200 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 cursor-pointer select-none',
         variants[variant],
         sizes[size],
         className,

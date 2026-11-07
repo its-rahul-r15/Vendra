@@ -7,18 +7,19 @@ export function Toaster() {
   if (!toasts.length) return null
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[80] flex flex-col items-center gap-2 px-4">
+    <div className="pointer-events-none fixed top-20 right-6 z-[9999] flex flex-col items-end gap-2.5 max-w-sm sm:max-w-md animate-rise">
       {toasts.map((toast) => (
         <div
           key={toast.id}
           className={cn(
-            'pointer-events-auto rounded-xl border px-5 py-3 text-sm font-medium shadow-xl animate-rise',
-            toast.type === 'error' && 'bg-[#b82828] border-[#b82828] text-white',
-            toast.type === 'success' && 'bg-[#0a0a0a] border-[#0a0a0a] text-white',
-            toast.type === 'info' && 'bg-[#0a0a0a] border-[#e7e5df] text-white',
+            'pointer-events-auto flex items-center gap-3 rounded-2xl px-5 py-3.5 text-xs sm:text-sm font-bold shadow-2xl backdrop-blur-md tracking-wide transition-all duration-300 ring-1',
+            toast.type === 'error' && 'bg-[#990024] text-white shadow-red-950/40 ring-white/20',
+            toast.type === 'success' && 'bg-[#120b0d]/95 text-white shadow-black/40 ring-white/15',
+            toast.type === 'info' && 'bg-[#120b0d]/95 text-white shadow-black/40 ring-white/15',
           )}
         >
-          {toast.message}
+          <span className="size-2 rounded-full bg-emerald-400 shrink-0" />
+          <span>{toast.message}</span>
         </div>
       ))}
     </div>

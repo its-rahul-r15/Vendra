@@ -1,6 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Minus, Plus, ShoppingBag, Trash2, ArrowRight, Store } from 'lucide-react'
+import {
+  ShoppingBag,
+  ArrowRight,
+  ArrowLeft,
+  Trash2,
+  Plus,
+  Minus,
+  ShieldCheck,
+  Store,
+} from 'lucide-react'
 import { useCartStore } from '@/stores/cart.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { formatINRFromPaise } from '@/utils/money'
 import { resolveImage } from '@/utils/media'
 import { Button } from '@/components/ui/Button'
@@ -8,18 +18,21 @@ import { EmptyState } from '@/components/ui/EmptyState'
 
 export function CartPage() {
   const navigate = useNavigate()
-  const cart = useCartStore((state) => state.cart)
-  const setQuantity = useCartStore((state) => state.setQuantity)
-  const removeItem = useCartStore((state) => state.removeItem)
-  const clear = useCartStore((state) => state.clear)
+  const cart = useCartStore((s) => s.cart)
+  const setQuantity = useCartStore((s) => s.setQuantity)
+  const removeItem = useCartStore((s) => s.removeItem)
+  const clearCart = useCartStore((s) => s.clearCart)
+  const user = useAuthStore((s) => s.user)
 
-  if (!cart.items.length) {
+  const items = cart?.items || []
+
+  if (items.length === 0) {
     return (
       <div className="container-app py-16 animate-rise">
         <EmptyState
           title="Your shopping cart is empty"
-          description="Explore our curated departments or discover local verified storefronts."
-          actionLabel="Explore catalog"
+          description="Explore our independent shops and curated catalog to add items to your cart."
+          actionLabel="Start Shopping"
           onAction={() => navigate('/categories')}
         />
       </div>
@@ -27,158 +40,144 @@ export function CartPage() {
   }
 
   return (
-    <div className="container-app grid gap-8 py-10 lg:grid-cols-[1.3fr_0.7fr] animate-rise">
-      {/* Cart Items Column */}
-      <section className="rounded-3xl border border-[#e7e5df] bg-white p-6 sm:p-8 shadow-sm">
-        <div className="mb-6 flex items-center justify-between border-b border-[#e7e5df] pb-4">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#737069]">
-              Bag Overview
-            </span>
-            <h1 className="mt-1 text-2xl font-black text-[#0a0a0a] sm:text-3xl">
-              Shopping Cart
-            </h1>
+    <div className="container-app py-10 animate-rise">
+      <div className="grid gap-8 lg:grid-cols-12 items-start">
+        {/* Left Column: Cart Items List */}
+        <div className="lg:col-span-8 rounded-3xl bg-white p-6 sm:p-8 shadow-sm">
+          <div className="flex items-center justify-between pb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#111827]">
+                Shopping Cart
+              </h1>
+              <p className="text-xs text-[#6b7280] font-medium mt-0.5">
+                {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
+              </p>
+            </div>
+            <button
+              onClick={clearCart}
+              className="text-xs font-bold text-[#dc2626] hover:underline cursor-pointer"
+            >
+              Clear Cart
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={clear}
-            className="text-xs font-semibold text-[#737069] transition hover:text-[#b82828] underline"
-          >
-            Clear all
-          </button>
-        </div>
 
-        {cart.vendorName ? (
-          <div className="mb-4 flex items-center gap-2 rounded-xl bg-[#faf9f5] border border-[#e7e5df] px-3.5 py-2 text-xs font-semibold text-[#121212]">
-            <Store className="size-3.5 text-[#0a0a0a]" />
-            <span>Fulfilling Vendor: {cart.vendorName}</span>
-          </div>
-        ) : null}
-
-        <div className="divide-y divide-[#e7e5df]">
-          {cart.items.map((item) => {
-            const itemId = item.id || item.listingId || item.menuItemId
-            const itemTotal = (Number(item.pricePaise) || 0) * (item.quantity || 1)
-
-            return (
-              <div
-                key={itemId}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-5"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="size-20 shrink-0 overflow-hidden rounded-xl bg-[#faf9f5] border border-[#e7e5df]">
-                    <img
-                      src={resolveImage(item.image)}
-                      alt={item.name}
-                      className="size-full object-cover"
-                    />
+          <div className="space-y-4">
+            {items.map((item) => {
+              const id = item.listingId || item.id
+              return (
+                <div
+                  key={id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[#f9fafb]"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="size-20 shrink-0 overflow-hidden rounded-xl bg-white p-1">
+                      <img
+                        src={resolveImage(item.image)}
+                        alt={item.name}
+                        className="size-full object-cover rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-bold text-[#111827] line-clamp-1">
+                        {item.name}
+                      </h3>
+                      <p className="text-xs font-semibold text-[#6b7280] mt-0.5">
+                        {formatINRFromPaise(item.pricePaise || 0)} each
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="line-clamp-2 text-base font-bold text-[#0a0a0a]">
-                      {item.name}
-                    </h3>
-                    <p className="mt-0.5 text-xs text-[#737069]">
-                      {formatINRFromPaise(item.pricePaise || 0)} · {item.unit || 'unit'}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-6">
-                  {/* Quantity controls */}
-                  <div className="flex h-9 items-center gap-2 rounded-lg border border-[#121212] bg-[#faf9f5] px-2 text-[#0a0a0a]">
-                    <button
-                      type="button"
-                      aria-label="Decrease quantity"
-                      onClick={() => setQuantity(itemId, item.quantity - 1)}
-                      className="grid size-6 place-items-center rounded hover:bg-black/5"
-                    >
-                      {item.quantity === 1 ? (
-                        <Trash2 className="size-3.5 text-[#b82828]" />
-                      ) : (
+                  <div className="flex items-center justify-between sm:justify-end gap-6">
+                    {/* Quantity Selector */}
+                    <div className="flex h-9 items-center gap-2 rounded-xl bg-white px-2 shadow-2xs text-[#dc2626]">
+                      <button
+                        onClick={() => setQuantity(id, item.quantity - 1)}
+                        className="grid size-6 place-items-center rounded hover:bg-[#fef2f2] transition"
+                        aria-label="Decrease"
+                      >
                         <Minus className="size-3.5" />
-                      )}
-                    </button>
-                    <span className="min-w-5 text-center text-sm font-bold">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label="Increase quantity"
-                      onClick={() => setQuantity(itemId, item.quantity + 1)}
-                      className="grid size-6 place-items-center rounded hover:bg-black/5"
-                    >
-                      <Plus className="size-3.5" />
-                    </button>
-                  </div>
+                      </button>
+                      <span className="min-w-4 text-center text-xs font-black text-[#111827]">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => setQuantity(id, item.quantity + 1)}
+                        className="grid size-6 place-items-center rounded hover:bg-[#fef2f2] transition"
+                        aria-label="Increase"
+                      >
+                        <Plus className="size-3.5" />
+                      </button>
+                    </div>
 
-                  {/* Total for this line */}
-                  <div className="min-w-24 text-right">
-                    <p className="text-base font-bold text-[#0a0a0a]">
-                      {formatINRFromPaise(itemTotal)}
-                    </p>
+                    <span className="text-sm sm:text-base font-black text-[#111827]">
+                      {formatINRFromPaise((item.pricePaise || 0) * item.quantity)}
+                    </span>
+
+                    <button
+                      onClick={() => removeItem(id)}
+                      className="text-[#9ca3af] hover:text-[#dc2626] transition cursor-pointer p-1"
+                      aria-label="Remove item"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+
+          <div className="mt-8 pt-4 flex items-center justify-between">
+            <Link
+              to="/categories"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#dc2626] hover:underline"
+            >
+              <ArrowLeft className="size-3.5" /> Continue Shopping
+            </Link>
+          </div>
         </div>
 
-        <div className="mt-8 border-t border-[#e7e5df] pt-6 flex justify-between items-center">
-          <Link
-            to="/categories"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0a0a0a] hover:underline"
+        {/* Right Column: Order Summary */}
+        <div className="lg:col-span-4 rounded-3xl bg-white p-6 sm:p-8 shadow-sm space-y-6">
+          <h2 className="text-lg font-black text-[#111827]">Order Summary</h2>
+
+          <div className="space-y-3 text-xs sm:text-sm font-medium text-[#4b5563]">
+            <div className="flex justify-between">
+              <span>Items Total</span>
+              <span className="font-bold text-[#111827]">
+                {formatINRFromPaise(cart?.itemTotalPaise || 0)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Shipping Estimate</span>
+              <span className="font-bold text-[#16a34a]">FREE</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Taxes</span>
+              <span className="font-bold text-[#111827]">Included</span>
+            </div>
+          </div>
+
+          <div className="pt-4 flex justify-between text-base sm:text-lg font-black text-[#111827]">
+            <span>Total Payable</span>
+            <span>{formatINRFromPaise(cart?.grandTotalPaise || cart?.itemTotalPaise || 0)}</span>
+          </div>
+
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={() => navigate('/checkout')}
+            className="w-full justify-center"
           >
-            <span>← Continue Category Shopping</span>
-          </Link>
-          <Link
-            to="/shops"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#737069] hover:underline"
-          >
-            <span>Browse Other Stores</span>
-          </Link>
-        </div>
-      </section>
+            <span>Proceed to Checkout</span>
+            <ArrowRight className="size-4" />
+          </Button>
 
-      {/* Summary Column */}
-      <aside className="h-fit rounded-3xl border border-[#e7e5df] bg-white p-6 sm:p-8 shadow-sm">
-        <h2 className="text-xl font-black text-[#0a0a0a]">Order Summary</h2>
-
-        <div className="mt-6 space-y-3 border-b border-[#e7e5df] pb-6 text-sm">
-          <div className="flex justify-between text-[#575550]">
-            <span>Items Subtotal</span>
-            <span className="font-semibold text-[#0a0a0a]">
-              {formatINRFromPaise(cart.subtotal || 0)}
-            </span>
-          </div>
-          <div className="flex justify-between text-[#575550]">
-            <span>Estimated Shipping</span>
-            <span className="font-semibold text-[#0a0a0a]">Calculated at Checkout</span>
-          </div>
-          <div className="flex justify-between text-[#575550]">
-            <span>Applicable Taxes</span>
-            <span className="font-semibold text-[#0a0a0a]">Included</span>
+          <div className="flex items-center justify-center gap-2 text-xs font-semibold text-[#6b7280]">
+            <ShieldCheck className="size-4 text-[#dc2626]" />
+            <span>Secure 256-bit encrypted checkout</span>
           </div>
         </div>
-
-        <div className="mt-5 flex justify-between text-lg font-black text-[#0a0a0a]">
-          <span>Total (Pre-fee)</span>
-          <span>{formatINRFromPaise(cart.subtotal || 0)}</span>
-        </div>
-
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={() => navigate('/checkout')}
-          className="mt-6 w-full h-12 text-base font-semibold"
-        >
-          <span>Proceed to Checkout</span>
-          <ArrowRight className="size-4" />
-        </Button>
-
-        <p className="mt-4 text-center text-xs text-[#737069]">
-          Secure checkout · Free cancellation before dispatch
-        </p>
-      </aside>
+      </div>
     </div>
   )
 }

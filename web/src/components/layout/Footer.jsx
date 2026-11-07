@@ -1,107 +1,113 @@
 import { Link } from 'react-router-dom'
-import { ShieldCheck, ArrowUpRight, Store } from 'lucide-react'
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-[#e7e5df] bg-white text-[#121212]">
-      <div className="container-app py-16">
-        <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
-          {/* Brand Col */}
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-sans text-3xl font-black tracking-tight text-[#0a0a0a]">
-                Vendra
-              </span>
-              <span className="rounded-full bg-[#121212] px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase text-white">
-                Platform
-              </span>
-            </div>
-            <p className="mt-4 max-w-sm text-base leading-relaxed text-[#737069]">
-              Curated multi-vendor marketplace connecting independent shops, boutiques, and merchants directly with discerning buyers.
-            </p>
-            <div className="mt-6 flex items-center gap-2 text-xs font-medium text-[#737069]">
-              <ShieldCheck className="size-4 text-[#121212]" />
-              <span>Verified Merchant Quality Guarantee</span>
-            </div>
-          </div>
+    <footer className="relative mt-auto overflow-hidden bg-gradient-to-b from-[#fcfbfa] via-[#faf2f4] via-40% to-[#f4d5de] text-[#120b0d] pt-8 sm:pt-12 pb-0 select-none">
+      
+      {/* Background Velvet Carmine Ambient Glows (Smooth Natural Diffusion) */}
+      <div className="absolute inset-0 pointer-events-none opacity-30">
+        <div className="absolute top-0 left-1/4 size-[400px] rounded-full bg-[#fcfbfa] blur-[90px]" />
+        <div className="absolute bottom-0 right-1/4 size-[450px] rounded-full bg-[#ba2249]/15 blur-[130px]" />
+      </div>
 
-          {/* Catalog & Shopping */}
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-[#121212]">
-              Shopping
-            </h4>
-            <div className="mt-4 flex flex-col gap-2.5 text-base text-[#575550]">
-              <Link to="/categories" className="transition hover:text-[#0a0a0a]">
-                Category-Wise Shopping
-              </Link>
-              <Link to="/shops" className="transition hover:text-[#0a0a0a]">
-                Shop Directory
-              </Link>
-              <Link to="/search" className="transition hover:text-[#0a0a0a]">
-                All Marketplace Items
-              </Link>
-              <Link to="/search?filter=deals" className="transition hover:text-[#0a0a0a]">
-                Curated Deals
-              </Link>
-              <Link to="/cart" className="transition hover:text-[#0a0a0a]">
-                Shopping Bag
-              </Link>
-            </div>
-          </div>
-
-          {/* Vendors & Sellers */}
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-[#121212]">
-              For Vendors
-            </h4>
-            <div className="mt-4 flex flex-col gap-2.5 text-base text-[#575550]">
-              <Link
-                to="/vendor/register"
-                className="font-semibold text-[#0a0a0a] transition hover:underline flex items-center gap-1"
+      <div className="relative z-10 container-app">
+        {/* Main 2-Column Minimalist Architectural Stage (Clean, No bulky center content) */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-10">
+          
+          {/* Left: Brand Contact, Socials & Legal Address */}
+          <div className="space-y-4 text-left">
+            {/* Minimalist Outlined Social Pills */}
+            <div className="flex items-center gap-3 text-[#120b0d]">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                className="size-7 rounded-full border border-black/25 flex items-center justify-center hover:bg-[#120b0d] hover:text-white hover:border-[#120b0d] transition cursor-pointer text-[11px] font-bold"
+                aria-label="Instagram"
               >
-                <span>Register as a Vendor</span>
-                <ArrowUpRight className="size-3.5" />
-              </Link>
-              <Link to="/vendor/login" className="transition hover:text-[#0a0a0a]">
-                Vendor Portal Sign In
-              </Link>
-              <Link to="/vendor/register" className="transition hover:text-[#0a0a0a]">
-                Seller Onboarding Guide
-              </Link>
-              <Link to="/shops" className="transition hover:text-[#0a0a0a]">
-                Partner Directory
-              </Link>
+                ig
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                className="size-7 rounded-full border border-black/25 flex items-center justify-center hover:bg-[#120b0d] hover:text-white hover:border-[#120b0d] transition cursor-pointer text-[11px] font-bold"
+                aria-label="LinkedIn"
+              >
+                in
+              </a>
+              <a
+                href="https://x.com"
+                target="_blank"
+                rel="noreferrer"
+                className="size-7 rounded-full border border-black/25 flex items-center justify-center hover:bg-[#120b0d] hover:text-white hover:border-[#120b0d] transition cursor-pointer text-[11px] font-bold font-mono"
+                aria-label="X"
+              >
+                𝕏
+              </a>
+            </div>
+
+            {/* Direct Contact Email */}
+            <div>
+              <a
+                href="mailto:concierge@vendra.io"
+                className="text-base sm:text-lg font-black text-[#120b0d] hover:text-[#990024] hover:underline tracking-tight transition-colors"
+              >
+                concierge@vendra.io
+              </a>
+            </div>
+
+            {/* Registered Headquarters Address */}
+            <div className="text-xs text-[#5c5658] font-medium leading-relaxed max-w-xs">
+              Vendra Technologies Pvt Ltd,<br />
+              One Horizon Center, Golf Course Rd,<br />
+              DLF Phase 5, Gurugram, 122002
             </div>
           </div>
 
-          {/* User & Support */}
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-[#121212]">
-              Customer Service
-            </h4>
-            <div className="mt-4 flex flex-col gap-2.5 text-base text-[#575550]">
-              <Link to="/account" className="transition hover:text-[#0a0a0a]">
-                Account & Addresses
-              </Link>
-              <Link to="/orders" className="transition hover:text-[#0a0a0a]">
-                Track Orders
-              </Link>
-              <Link to="/login" className="transition hover:text-[#0a0a0a]">
-                Sign in / Register
-              </Link>
-            </div>
+          {/* Right: Clean Editorial Stack Navigation */}
+          <div className="flex flex-col md:items-end justify-center space-y-2 text-sm sm:text-base font-bold text-[#120b0d]">
+            <Link to="/categories" className="hover:text-[#990024] transition hover:translate-x-1 duration-200">
+              Platform
+            </Link>
+            <Link to="/search" className="hover:text-[#990024] transition hover:translate-x-1 duration-200">
+              Curations
+            </Link>
+            <Link to="/shops" className="hover:text-[#990024] transition hover:translate-x-1 duration-200">
+              Brand Stores
+            </Link>
+            <Link to="/account" className="hover:text-[#990024] transition hover:translate-x-1 duration-200">
+              Account
+            </Link>
+            <Link to="/vendor/login" className="hover:text-[#990024] transition hover:translate-x-1 duration-200 text-xs uppercase tracking-wider font-black text-[#990024]">
+              Merchant Portal →
+            </Link>
           </div>
+
         </div>
 
-        {/* Bottom Banner */}
-        <div className="mt-14 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#e7e5df] pt-8 text-sm text-[#737069]">
-          <p>© {new Date().getFullYear()} Vendra Marketplace. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <span>Authentic Products</span>
-            <span>Secure Checkout</span>
-            <span>Independent Shops</span>
-          </div>
+        {/* Sub-bar (Terms, Copyright, Privacy Policy) */}
+        <div className="pt-6 pb-2 border-t border-black/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-[#6e686a]">
+          <Link to="/categories" className="hover:text-[#120b0d] underline underline-offset-4">
+            Terms and conditions
+          </Link>
+
+          <span>
+            © {new Date().getFullYear()} Vendra. All Rights Reserved
+          </span>
+
+          <Link to="/categories" className="hover:text-[#120b0d] underline underline-offset-4">
+            Privacy Policy
+          </Link>
         </div>
+
+        {/* ── 90% VISIBLE ARCHITECTURAL WATERMARK (Only bottom 10% clipped) ── */}
+        <div className="h-28 sm:h-36 md:h-48 overflow-hidden text-center pointer-events-none select-none relative flex items-start justify-center">
+          <span className="block text-[18vw] font-black leading-none tracking-[-0.07em] text-[#990024]/[0.13] uppercase -translate-y-[2%]">
+            vendra
+          </span>
+        </div>
+
       </div>
     </footer>
   )

@@ -104,14 +104,14 @@ export function ShopsPage() {
   return (
     <div className="container-app py-10 animate-rise">
       {/* Header */}
-      <div className="border-b border-[#e7e5df] pb-8">
+      <div className="pb-4 pb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#737069]">
               <Store className="size-4" />
               Merchant Directory
             </span>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-[#0a0a0a] sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-[#dc2626] sm:text-4xl">
               Shop-Wise Directory
             </h1>
             <p className="mt-2 text-base text-[#575550]">
@@ -121,7 +121,7 @@ export function ShopsPage() {
 
           <Link
             to="/vendor/register"
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#0a0a0a] px-5 text-sm font-semibold text-white transition hover:bg-[#262626]"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#dc2626] px-5 text-sm font-semibold text-white transition hover:bg-[#262626]"
           >
             <span>Register as a Vendor</span>
             <ArrowRight className="size-4" />
@@ -133,7 +133,7 @@ export function ShopsPage() {
           {/* Search input */}
           <form
             onSubmit={handleSearchSubmit}
-            className="flex h-11 w-full sm:max-w-md items-center gap-3 rounded-xl border border-[#e7e5df] bg-white px-3.5 transition focus-within:border-[#0a0a0a]"
+            className="flex h-11 w-full sm:max-w-md items-center gap-3 rounded-xl border border-slate-100 bg-white px-3.5 transition focus-within:border-[#dc2626]"
           >
             <Search className="size-4 text-[#737069]" />
             <input
@@ -141,7 +141,7 @@ export function ShopsPage() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search by store name, locality, or specialty..."
-              className="w-full bg-transparent text-sm text-[#121212] outline-none placeholder:text-[#99958d]"
+              className="w-full bg-transparent text-sm text-[#111827] outline-none placeholder:text-[#99958d]"
             />
             {searchInput ? (
               <button
@@ -150,7 +150,7 @@ export function ShopsPage() {
                   setSearchInput('')
                   setFilter('q', '')
                 }}
-                className="text-xs text-[#737069] hover:text-[#0a0a0a]"
+                className="text-xs text-[#737069] hover:text-[#dc2626]"
               >
                 Clear
               </button>
@@ -164,8 +164,8 @@ export function ShopsPage() {
               onClick={() => setFilter('vertical', '')}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                 !vertical
-                  ? 'bg-[#0a0a0a] text-white'
-                  : 'border border-[#e7e5df] bg-white text-[#42403c] hover:border-[#0a0a0a]'
+                  ? 'bg-[#dc2626] text-white'
+                  : 'border border-slate-100 bg-white text-[#42403c] hover:border-[#dc2626]'
               }`}
             >
               All Types
@@ -175,8 +175,8 @@ export function ShopsPage() {
               onClick={() => setFilter('vertical', 'food')}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                 vertical === 'food'
-                  ? 'bg-[#0a0a0a] text-white'
-                  : 'border border-[#e7e5df] bg-white text-[#42403c] hover:border-[#0a0a0a]'
+                  ? 'bg-[#dc2626] text-white'
+                  : 'border border-slate-100 bg-white text-[#42403c] hover:border-[#dc2626]'
               }`}
             >
               Gourmet & Dining
@@ -186,8 +186,8 @@ export function ShopsPage() {
               onClick={() => setFilter('vertical', 'grocery')}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                 vertical === 'grocery'
-                  ? 'bg-[#0a0a0a] text-white'
-                  : 'border border-[#e7e5df] bg-white text-[#42403c] hover:border-[#0a0a0a]'
+                  ? 'bg-[#dc2626] text-white'
+                  : 'border border-slate-100 bg-white text-[#42403c] hover:border-[#dc2626]'
               }`}
             >
               Groceries & Essentials
@@ -197,8 +197,8 @@ export function ShopsPage() {
               onClick={() => setFilter('vertical', 'commerce')}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                 vertical === 'commerce'
-                  ? 'bg-[#0a0a0a] text-white'
-                  : 'border border-[#e7e5df] bg-white text-[#42403c] hover:border-[#0a0a0a]'
+                  ? 'bg-[#dc2626] text-white'
+                  : 'border border-slate-100 bg-white text-[#42403c] hover:border-[#dc2626]'
               }`}
             >
               Retail & Boutiques
@@ -211,7 +211,7 @@ export function ShopsPage() {
       <div className="mt-8">
         {loading ? (
           <div className="flex min-h-[300px] items-center justify-center">
-            <Spinner className="size-8 text-[#0a0a0a]" />
+            <Spinner className="size-8 text-[#dc2626]" />
           </div>
         ) : !shops.length ? (
           <EmptyState
