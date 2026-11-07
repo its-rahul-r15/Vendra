@@ -76,11 +76,15 @@ export function ProductCard({ product }) {
 
         {/* Micro Guarantee & Delivery */}
         <div className="mt-2 flex items-center gap-2 text-xs text-[#6e686a] font-medium">
-          <div className="flex items-center gap-1 font-black text-[#120b0d] text-[11px]">
-            <Star className="size-3 fill-[#f59e0b] text-[#f59e0b]" />
-            <span>4.9</span>
-          </div>
-          <span>•</span>
+          {Number(itemData.rating?.average || product.rating?.average || 0) > 0 ? (
+            <>
+              <div className="flex items-center gap-1 font-black text-[#120b0d] text-[11px]">
+                <Star className="size-3 fill-[#f59e0b] text-[#f59e0b]" />
+                <span>{Number(itemData.rating?.average || product.rating?.average).toFixed(1)}</span>
+              </div>
+              <span>•</span>
+            </>
+          ) : null}
           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
             Free Express
           </span>

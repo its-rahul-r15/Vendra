@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { catalogApi } from '@/api/catalog'
 
 const STORAGE_KEY = 'vendra_cart_v2'
 
@@ -53,18 +54,33 @@ export const useCartStore = create((set, get) => ({
    * Can accept either a catalog listing or a restaurant menu item.
    */
   async addItem(productOrItem, quantity = 1, options = {}) {
-    const isListing = Boolean(productOrItem.pricePaise !== undefined || productOrItem.itemId)
-    const id = String(productOrItem._id || productOrItem.id || productOrItem.listingId || productOrItem.menuItemId)
+    // If a string ID is passed, load listing from API
+    let itemToProcess = productOrItem
+    if (typeof productOrItem === 'string') {
+      try {
+        const fetched = await catalogApi.product(productOrItem)
+        if (fetched) {
+          itemToProcess = fetched
+        } else {
+          itemToProcess = { _id: productOrItem, id: productOrItem }
+        }
+      } catch {
+        itemToProcess = { _id: productOrItem, id: productOrItem }
+      }
+    }
+
+    const isListing = Boolean(itemToProcess.pricePaise !== undefined || itemToProcess.itemId)
+    const id = String(itemToProcess._id || itemToProcess.id || itemToProcess.listingId || itemToProcess.menuItemId)
     
     let itemPayload = null
     const currentCart = get().cart
     const items = [...currentCart.items]
 
     if (isListing) {
-      const itemData = productOrItem.itemId || productOrItem.product || {}
-      const pricePaise = Number(productOrItem.pricePaise || 0)
-      const mrpPaise = Number(productOrItem.mrpPaise || pricePaise)
-      const vendor = productOrItem.vendorId || {}
+      const itemData = itemToProcess.itemId || itemToProcess.product || {}
+      const pricePaise = Number(itemToProcess.pricePaise || 0)
+      const mrpPaise = Number(itemToProcess.mrpPaise || pricePaise)
+      const vendor = itemToProcess.vendorId || {}
       const vendorId = vendor._id || vendor.id || currentCart.vendorId
       const vendorName = vendor.name || currentCart.vendorName || 'Vendra Marketplace'
 
@@ -76,12 +92,12 @@ export const useCartStore = create((set, get) => ({
           id,
           listingId: id,
           type: 'listing',
-          name: itemData.name || productOrItem.name || 'Product',
+          name: itemData.name || itemToProcess.name || 'Product',
           pricePaise,
           mrpPaise,
           quantity,
           unit: itemData.attributes?.unit || 'unit',
-          image: itemData.media?.find((m) => m.isPrimary)?.url || itemData.media?.[0]?.url || productOrItem.image || '',
+          image: itemData.media?.find((m) => m.isPrimary)?.url || itemData.media?.[0]?.url || itemToProcess.image || '',
           vendorId,
           vendorName,
         }
