@@ -32,7 +32,7 @@ export function ProductCard({ product }) {
         className="relative block aspect-square w-full overflow-hidden rounded-2xl bg-[#f4f2ee]"
       >
         <img
-          src={resolveImage(image)}
+          src={resolveImage(image, itemData.name || category.name || category.slug)}
           alt={itemData.name || 'Product'}
           className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
           loading="lazy"

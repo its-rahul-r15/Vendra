@@ -522,7 +522,7 @@ export function HomePage() {
                 <div className="relative size-18 sm:size-20 md:size-22 rounded-full p-1 bg-[#f4f3f0] ring-1 ring-black/5 group-hover:ring-[#990024] group-hover:scale-105 transition-all duration-300">
                   <div className="size-full rounded-full overflow-hidden bg-white">
                     <img
-                      src={resolveImage(cat.image || cat.iconUrl)}
+                      src={resolveImage(cat.image || cat.iconUrl, cat.slug || cat.name)}
                       alt={cat.name}
                       className="size-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
                       loading="lazy"
